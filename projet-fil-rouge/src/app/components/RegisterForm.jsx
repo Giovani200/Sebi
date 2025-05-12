@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useState } from 'react'
 
 export default function RegisterForm() {
@@ -87,7 +88,7 @@ export default function RegisterForm() {
         value={formData.age}
         onChange={(e) => setFormData({ ...formData, age: e.target.value })}
       />
-      
+
       {/* Champ parentEmail visible si l'âge est inférieur à 13 */}
       {parseInt(formData.age) < 13 && (
         <input
@@ -107,6 +108,11 @@ export default function RegisterForm() {
 
       {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
       <button type="submit">S'inscrire</button>
+
+      <div className="text-sm mt-2">
+        <p>Déjà inscrit ? <Link href="/login" className="text-blue-500 underline">Se connecter</Link></p>
+      </div>
+
     </form>
   )
 }

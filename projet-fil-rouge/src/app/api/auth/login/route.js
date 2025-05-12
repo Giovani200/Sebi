@@ -2,8 +2,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import connectDB from '@/app/lib/db';
-import User from '@/app/models/User';
+import connectDB from '@/lib/db';
+import User from '@/app/models/User.model';
 
 export const POST = async (req) => {
   await connectDB();
@@ -24,6 +24,11 @@ export const POST = async (req) => {
   if (!isMatch) {
     return NextResponse.json({ message: "Mot de passe incorrect" }, { status: 401 });
   }
+
+  if (!user.isParentApproved) {
+  return NextResponse.json({ message: "Le compte n’a pas encore été validé par les parents." }, { status: 403 });
+}
+
 
   // Génération du token JWT
   const jwtToken = jwt.sign(
