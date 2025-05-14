@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 const Nav = () => {
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-orange-200 p-2">
+    <nav className="fixed top-0 left-0 right-0 bg-orange-200 ">
       <div className="max-w-screen-xl mx-auto">
         <div className="flex justify-between items-center">
           {/* Accueil - Icône maison */}
