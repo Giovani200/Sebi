@@ -33,32 +33,44 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cover bg-center animate-fadeInUp" style={{ backgroundImage: 'url(/images/foret.jpg)' }}>
-      <div className="bg-orange-50 p-8 rounded-lg shadow-lg w-96 animate-scaleIn">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6 animate-slideIn">Inscription</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="animate-fadeInUp animate-delay-100">
-            <input
-              type="text"
-              name="prenom"
-              value={formData.prenom}
-              onChange={handleChange}
-              placeholder="PRENOM"
-              className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 uppercase transition-all duration-300"
-              required
-            />
-          </div>
-          
-          <div className="animate-fadeInUp animate-delay-100">
-            <input
-              type="text"
-              name="nom"
-              value={formData.nom}
-              onChange={handleChange}
-              placeholder="NOM"
-              className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 uppercase transition-all duration-300"
-              required
-            />
+    <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat bg-fixed" style={{ 
+      backgroundImage: 'url(/images/foret.jpg)',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div className="card animate-scaleIn">
+        <h2 className="card-title animate-slideIn">Inscription</h2>
+        <form onSubmit={handleSubmit} className="spacing-responsive">
+          <div className="form-grid">
+            <div className="animate-fadeInUp animate-delay-100">
+              <input
+                type="text"
+                name="prenom"
+                value={formData.prenom}
+                onChange={handleChange}
+                placeholder="PRÉNOM"
+                className="form-input"
+                required
+              />
+            </div>
+            
+            <div className="animate-fadeInUp animate-delay-100">
+              <input
+                type="text"
+                name="nom"
+                value={formData.nom}
+                onChange={handleChange}
+                placeholder="NOM"
+                className="form-input"
+                required
+              />
+            </div>
           </div>
 
           <div className="animate-fadeInUp animate-delay-200">
@@ -68,35 +80,37 @@ export default function Register() {
               value={formData.email}
               onChange={handleChange}
               placeholder="EMAIL"
-              className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 uppercase transition-all duration-300"
+              className="form-input"
               required
             />
           </div>
 
-          <div className="animate-fadeInUp animate-delay-200">
-            <input
-              type="number"
-              name="age"
-              value={formData.age}
-              onChange={handleChange}
-              placeholder="AGE"
-              className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 uppercase transition-all duration-300"
-              required
-              min="4"
-              max="120"
-            />
-          </div>
+          <div className="form-grid">
+            <div className="animate-fadeInUp animate-delay-200">
+              <input
+                type="number"
+                name="age"
+                value={formData.age}
+                onChange={handleChange}
+                placeholder="ÂGE"
+                className="form-input"
+                required
+                min="4"
+                max="120"
+              />
+            </div>
 
-          <div className="animate-fadeInUp animate-delay-200">
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="MOT DE PASSE"
-              className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 uppercase transition-all duration-300"
-              required
-            />
+            <div className="animate-fadeInUp animate-delay-200">
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="MOT DE PASSE"
+                className="form-input"
+                required
+              />
+            </div>
           </div>
 
           {showParentEmail && (
@@ -107,22 +121,22 @@ export default function Register() {
                 value={formData.emailParent}
                 onChange={handleChange}
                 placeholder="EMAIL PARENT"
-                className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 uppercase transition-all duration-300"
+                className="form-input"
                 required
               />
             </div>
           )}
 
-          <div className="flex space-x-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-4 mt-6">
             <button
               type="submit"
-              className="flex-1 bg-green-200 text-gray-700 py-2 rounded hover:bg-green-300 transition-all duration-300 animate-fadeInUp animate-delay-300"
+              className="btn-primary animate-fadeInUp animate-delay-300"
             >
               Valider
             </button>
             <Link
               href="/login"
-              className="flex-1 bg-blue-200 text-gray-700 py-2 rounded hover:bg-blue-300 transition-all duration-300 text-center animate-fadeInUp animate-delay-300"
+              className="btn-secondary animate-fadeInUp animate-delay-300 text-center"
             >
               Connexion
             </Link>

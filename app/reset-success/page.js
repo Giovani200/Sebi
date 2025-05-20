@@ -3,18 +3,28 @@ import Link from 'next/link';
 
 export default function ResetSuccess() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cover bg-center animate-fadeInUp" style={{ backgroundImage: 'url(/images/foret.jpg)' }}>
-      <div className="bg-orange-50 p-8 rounded-lg shadow-lg w-96 animate-scaleIn text-center">
+    <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat bg-fixed" style={{ 
+      backgroundImage: 'url(/images/foret.jpg)',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div className="card animate-scaleIn text-center">
         <div className="text-green-500 text-5xl mb-4 animate-scaleIn">✓</div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 animate-slideIn">
+        <h2 className="card-title animate-slideIn">
           Mot de passe réinitialisé !
         </h2>
-        <p className="text-gray-600 mb-6 animate-fadeInUp animate-delay-100">
+        <p className="text-gray-600 mb-6 animate-fadeInUp animate-delay-100 text-responsive">
           Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
         </p>
         <Link 
           href="/login"
-          className="inline-block bg-green-200 text-gray-700 py-2 px-6 rounded hover:bg-green-300 transition-all duration-300 animate-fadeInUp animate-delay-200"
+          className="btn-primary inline-block animate-fadeInUp animate-delay-200"
         >
           Se connecter
         </Link>
