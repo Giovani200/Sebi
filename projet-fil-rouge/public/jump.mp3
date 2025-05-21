@@ -1,0 +1,8 @@
+// Son de saut pour Sebi
+// Ce fichier est un placeholder - vous devriez remplacer ceci par un vrai fichier audio .mp3
+
+// Pour utiliser ce fichier son dans le jeu,
+// utilisez le code suivant dans useGame.js :
+//
+// const jumpSound = new Audio('/jump.mp3');
+// jumpSound.play();
