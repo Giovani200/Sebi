@@ -1,0 +1,359 @@
+import { useRef, useEffect, useState, useCallback } from "react";
+
+// Définition des constantes initiales
+const SEBI_INITIAL = { x: 100, y: 100, w: 80, h: 80, vy: 0, jumping: false };
+
+export default function useGame(canvasRef) {
+  // États
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [nightMode, setNightMode] = useState(false);
+  const [isGameReady, setIsGameReady] = useState(false);
+  
+  // État du jeu
+  const state = useRef({
+    sebi: { ...SEBI_INITIAL },
+    obstacles: [],
+    speed: 4,
+    gravity: 1.2,
+    jumpPower: -16,
+    frame: 0,
+    running: true,
+  });
+
+  // Préchargement des images
+  const imagesRef = useRef({});
+  useEffect(() => {
+    console.log("Loading images...");
+    const images = {};
+    const toLoad = [
+      { key: 'bg', src: '/foret-bg.png' },
+      { key: 'sebi', src: '/gazelle.png' },
+      { key: 'bush', src: '/bush.png' },
+    ];
+    toLoad.forEach(({key, src}) => {
+      const img = new window.Image();
+      img.src = src;
+      img.onload = () => console.log(`Image ${key} loaded successfully`);
+      img.onerror = (e) => console.error(`Failed to load image ${key} from ${src}`, e);
+      images[key] = img;
+    });
+    imagesRef.current = images;
+  }, []);
+
+  // Charger le high score
+  useEffect(() => {
+    setHighScore(Number(localStorage.getItem("sebi-highscore") || 0));
+  }, []);
+
+  // Boucle principale du jeu
+  useEffect(() => {
+    console.log(`Main effect - isGameOver: ${isGameOver}, isGameReady: ${isGameReady}`);
+    
+    // Vérification du canvas
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      console.log("Canvas ref is null");
+      return;
+    }
+    console.log(`Canvas dimensions: ${canvas.width}x${canvas.height}`);
+    
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      console.log("Failed to get 2d context");
+      return;
+    }
+    
+    // Variables de jeu
+    let animation;
+    let lastTime = performance.now();
+    let distance = 0;
+
+    // Calcul des dimensions basées sur le canvas
+    const GROUND_HEIGHT = canvas.height * 0.12; // 12% de hauteur pour le sol
+    const PLAYER_HEIGHT = canvas.height * 0.18;
+    const PLAYER_WIDTH = PLAYER_HEIGHT * 1.5;
+    const FLOOR_Y = canvas.height - GROUND_HEIGHT;
+    const PLAYER_Y = FLOOR_Y - PLAYER_HEIGHT;
+    const PLAYER_X = canvas.width * 0.2;
+
+    console.log(`Game dimensions - Floor: ${FLOOR_Y}, Player pos: (${PLAYER_X},${PLAYER_Y})`);
+
+    // Ajustement des paramètres physiques
+    state.current.jumpPower = -canvas.height * 0.025;
+    state.current.gravity = canvas.height * 0.0016;
+    state.current.speed = Math.max(4, canvas.width * 0.005);
+
+    // Fonction pour dessiner Sebi
+    function drawPlayer(g, now) {
+      const sebiImg = imagesRef.current.sebi;
+      
+      if (!sebiImg) {
+        console.log("drawPlayer: sebiImg is not loaded yet");
+        // Fallback si l'image n'est pas chargée
+        ctx.save();
+        ctx.beginPath();
+        ctx.fillStyle = '#f59e42';
+        ctx.fillRect(g.x, g.y, g.w, g.h);
+        ctx.restore();
+        return;
+      }
+      
+      if (sebiImg.complete) {
+        const aspect = sebiImg.width / sebiImg.height || 1;
+        const targetH = PLAYER_HEIGHT;
+        const targetW = targetH * aspect;
+        
+        // Animation d'oscillation verticale
+        const runningOffset = g.jumping ? 0 : Math.sin(now / 100) * 5;
+        
+        ctx.drawImage(sebiImg, g.x, g.y + runningOffset, targetW, targetH);
+      } else {
+        // Fallback en attendant que l'image se charge
+        ctx.save();
+        ctx.beginPath();
+        ctx.fillStyle = '#f59e42';
+        ctx.fillRect(g.x, g.y, g.w, g.h);
+        ctx.restore();
+      }
+    }
+
+    // Fonction pour dessiner un obstacle
+    function drawObstacle(o) {
+      const bushImg = imagesRef.current.bush;
+      
+      if (bushImg && bushImg.complete) {
+        ctx.drawImage(bushImg, o.x, o.y, o.w, o.h);
+      } else {
+        // Fallback
+        ctx.save();
+        ctx.fillStyle = '#228B22';
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+        ctx.restore();
+      }
+    }
+
+    // Fonction pour dessiner l'arrière-plan
+    function drawBackground() {
+      const bgImg = imagesRef.current.bg;
+      
+      if (bgImg && bgImg.complete) {
+        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+      } else {
+        // Fallback avec un dégradé
+        const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        grad.addColorStop(0, nightMode ? '#183a1d' : '#4ade80');
+        grad.addColorStop(0.5, nightMode ? '#22543d' : '#166534');
+        grad.addColorStop(1, nightMode ? '#0f172a' : '#052e16');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // Fonction de détection de collision
+    function detectCollision(rect1, rect2) {
+      return (
+        rect1.x < rect2.x + rect2.w &&
+        rect1.x + rect1.w > rect2.x &&
+        rect1.y < rect2.y + rect2.h &&
+        rect1.y + rect1.h > rect2.y
+      );
+    }
+
+    // Fonction pour réinitialiser Sebi
+    function resetSebi() {
+      console.log("Resetting Sebi position");
+      state.current.sebi = {
+        x: PLAYER_X,
+        y: PLAYER_Y,
+        w: PLAYER_WIDTH,
+        h: PLAYER_HEIGHT,
+        vy: 0,
+        jumping: false
+      };
+    }
+
+    // Fonction pour réinitialiser les obstacles
+    function resetObstacles() {
+      state.current.obstacles = [];
+    }
+
+    // Fonction principale de boucle de jeu
+    function loop(now = performance.now()) {
+      if (!state.current.running) return;
+      
+      const delta = (now - lastTime) / 1000; // Temps écoulé en secondes
+      lastTime = now;
+
+      // Vitesse de jeu
+      const baseSpeed = nightMode ? 7 : 5;
+      state.current.speed = baseSpeed + Math.min(Math.floor(distance / 300), 5);
+
+      // Effacer le canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Dessiner le fond
+      drawBackground();
+
+      // Mettre à jour et dessiner Sebi
+      let g = state.current.sebi;
+      g.y += g.vy;
+      g.vy += state.current.gravity;
+      
+      // Collisions avec le sol
+      if (g.y >= PLAYER_Y) {
+        g.y = PLAYER_Y;
+        g.vy = 0;
+        g.jumping = false;
+      }
+      
+      drawPlayer(g, now);
+
+      // Mettre à jour et dessiner les obstacles
+      state.current.obstacles.forEach(o => {
+        o.x -= state.current.speed * delta * 60;
+        drawObstacle(o);
+      });
+      
+      // Supprimer les obstacles hors écran
+      state.current.obstacles = state.current.obstacles.filter(o => o.x + o.w > 0);
+
+      // Générer de nouveaux obstacles
+      if (state.current.frame % Math.max(60, 120 - Math.floor(distance / 100)) === 0) {
+        const lastObstacle = state.current.obstacles[state.current.obstacles.length - 1];
+        const minDistance = canvas.width * 0.5;
+        
+        if (!lastObstacle || lastObstacle.x < canvas.width - minDistance) {
+          const bushHeight = canvas.height * 0.2;
+          state.current.obstacles.push({
+            x: canvas.width,
+            y: FLOOR_Y - bushHeight,
+            w: bushHeight * 1.2,
+            h: bushHeight,
+            type: "bush"
+          });
+        }
+      }
+
+      // Détection des collisions
+      state.current.obstacles.forEach(o => {
+        // Hitbox de Sebi (réduite par rapport à sa taille réelle)
+        const sebiHitbox = {
+          x: g.x + g.w * 0.2,
+          y: g.y + g.h * 0.1,
+          w: g.w * 0.6,
+          h: g.h * 0.7
+        };
+        
+        // Hitbox de l'obstacle (réduite par rapport à sa taille réelle)
+        const obstacleHitbox = {
+          x: o.x + o.w * 0.1,
+          y: o.y + o.h * 0.4,
+          w: o.w * 0.8,
+          h: o.h * 0.6
+        };
+        
+        if (detectCollision(sebiHitbox, obstacleHitbox)) {
+          // Effet visuel de collision
+          ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Fin de partie
+          state.current.running = false;
+          setIsGameOver(true);
+          
+          // Mise à jour du high score
+          if (distance > highScore) {
+            setHighScore(Math.floor(distance));
+            localStorage.setItem("sebi-highscore", String(Math.floor(distance)));
+          }
+        }
+      });
+
+      // Mise à jour du score
+      if (!isGameOver) {
+        distance += state.current.speed * delta;
+        setScore(Math.floor(distance));
+        
+        if (distance > 0 && distance % 200 < 1) {
+          state.current.speed = Math.min(12, state.current.speed + 0.2);
+        }
+        
+        if (distance >= 500) setNightMode(true);
+      }
+
+      // Incrémenter le compteur de frames
+      state.current.frame++;
+      
+      // Continuer la boucle
+      if (state.current.running) {
+        animation = requestAnimationFrame(loop);
+      }
+    }
+
+    // Démarrer le jeu uniquement si les conditions sont remplies
+    if (!isGameOver && isGameReady) {
+      console.log("Starting game");
+      resetSebi();
+      resetObstacles();
+      state.current.running = true;
+      lastTime = performance.now();
+      distance = 0;
+      loop();
+    }
+
+    // Nettoyage
+    return () => {
+      state.current.running = false;
+      if (animation) {
+        cancelAnimationFrame(animation);
+      }
+    };
+  }, [canvasRef, isGameOver, isGameReady, nightMode, highScore]);
+
+  // Fonction de saut
+  function jump() {
+    if (isGameOver) return;
+    
+    const g = state.current.sebi;
+    if (!g.jumping) {
+      g.vy = state.current.jumpPower;
+      g.jumping = true;
+    }
+  }
+
+  // Fonction de réinitialisation
+  const reset = useCallback(() => {
+    console.log("Reset called");
+    setIsGameOver(false);
+    setScore(0);
+    setNightMode(false);
+    setIsGameReady(true);
+    
+    setTimeout(() => {
+      const canvas = canvasRef.current;
+      if (canvas && canvas.width > 0 && canvas.height > 0) {
+        // Les dimensions sont correctes, réinitialisation effectuée dans l'effet principal
+        console.log("Canvas is ready for reset");
+      } else {
+        // Canvas pas prêt, on réessaie
+        console.log("Canvas not ready for reset, trying again soon");
+        setTimeout(() => reset(), 100);
+      }
+    }, 50);
+  }, [canvasRef]);
+
+  // Exposer les fonctions et états
+  return {
+    state,
+    score,
+    highScore,
+    isGameOver,
+    isGameReady,
+    setIsGameReady,
+    jump,
+    reset,
+    nightMode,
+  };
+}
