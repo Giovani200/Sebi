@@ -23,4 +23,123 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Responsive form container */
+.form-container {
+  @apply w-full max-w-md mx-auto px-4 sm:px-6;
+}
+
+/* Responsive form inputs */
+.form-input {
+  @apply w-full text-gray-600 p-3 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300 rounded-t-md;
+}
+
+/* Responsive buttons */
+.btn-primary {
+  @apply w-full bg-green-200 text-gray-700 py-3 px-6 rounded-md hover:bg-green-300 transition-all duration-300 font-medium;
+}
+
+.btn-secondary {
+  @apply w-full bg-blue-200 text-gray-700 py-3 px-6 rounded-md hover:bg-blue-300 transition-all duration-300 font-medium;
+}
+
+/* Page background container */
+.page-container {
+  @apply min-h-screen w-full flex items-center justify-center;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.5s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.5s ease-out;
+}
+
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+
+/* Mobile-first responsive utilities */
+.card {
+  @apply bg-orange-50 p-6 sm:p-8 rounded-lg shadow-lg w-full max-w-sm sm:max-w-md mx-auto;
+}
+
+.card-title {
+  @apply text-xl sm:text-2xl font-bold text-center text-gray-800 mb-6;
+}
+
+/* Form grid for larger forms */
+.form-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
+}
+
+/* Responsive text utilities */
+.text-responsive {
+  @apply text-sm sm:text-base;
+}
+
+/* Responsive spacing utilities */
+.spacing-responsive {
+  @apply space-y-4 sm:space-y-6;
 }
