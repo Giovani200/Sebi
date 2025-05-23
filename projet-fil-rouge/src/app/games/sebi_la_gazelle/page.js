@@ -1,6 +1,6 @@
 "use client";
 // Import sans extension de fichier
-import GameCanvas from "../components/GameCanvas";
+import GameCanvas from "../../components/GameCanvas";
 
 export default function GamePage() {
   return (

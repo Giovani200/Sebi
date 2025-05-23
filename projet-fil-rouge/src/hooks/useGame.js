@@ -3,6 +3,8 @@ import { generateObstacle } from "../utils/gameGeneratorsSimple";
 import soundManager from "../utils/SoundManager";
 import { validateCollisions } from "../utils/collisionTests";
 
+
+
 // Définition des constantes initiales
 const SEBI_INITIAL = { x: 100, y: 100, w: 80, h: 80, vy: 0, vx: 0, jumping: false };
 
@@ -33,7 +35,7 @@ export default function useGame(canvasRef) {
 
   // Préchargement des images et sons
   const imagesRef = useRef({});
-  const soundsRef = useRef({});
+  // const soundsRef = useRef({});
 
   useEffect(() => {
     console.log("Loading images...");
@@ -59,7 +61,7 @@ export default function useGame(canvasRef) {
       img.src = src;
 
       // Gestionnaire d'erreur pour charger la version standard si la version optimisée n'existe pas
-      img.onerror = (e) => {
+      img.onerror = () => {
         console.warn(`Failed to load optimized image ${src}, falling back to standard version`);
         const standardSrc = src.replace('-small.png', '.png');
         img.src = standardSrc;
@@ -225,7 +227,7 @@ export default function useGame(canvasRef) {
     }
 
     // Fonction pour dessiner un obstacle
-    function drawObstacle(o, now = 0, isMobile = false) {
+    function drawObstacle(o, isMobile = false) {
       // Uniquement des buissons dans cette version simplifiée
       const bushImg = imagesRef.current.bush;
 
@@ -399,7 +401,7 @@ export default function useGame(canvasRef) {
     // Le DEBUG_HITBOX est défini en haut du fichier
 
     // Fonction de détection de collision avec tolérance ajustable
-    function detectCollision(rect1, rect2, tolerance = 0.7) {
+    function detectCollision(rect1, rect2) {
       // La détection de collision est maintenant activée
 
       // Récupération des rectangles avec les dimensions déjà ajustées
@@ -575,8 +577,8 @@ export default function useGame(canvasRef) {
       // Vérifier et mettre à jour le high score si nécessaire
       if (state.current.currentDistance > highScore) {
         setHighScore(state.current.currentDistance);
-        localStorage.setItem("sebi-highscore", String(state.current.currentDistance));
       }
+
 
       // Activer le mode nuit périodiquement
       if (Math.floor(distance / 1000) % 2 === 1 && !nightMode) {
@@ -607,6 +609,26 @@ export default function useGame(canvasRef) {
           soundManager.play('jump', { pitchVariation: 0.15, volume: 0.8 });
 
           // Mettre fin au jeu
+
+          fetch("/api/scores", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              score: state.current.currentDistance,
+              gameSlug: "sebi-run",
+            }),
+            credentials: 'include', // important pour envoyer le cookie token
+          })
+            .then((res) => {
+              if (!res.ok) {
+                console.error("Erreur d'enregistrement du score");
+              }
+            })
+            .catch((err) => {
+              console.error("Erreur réseau :", err);
+            });
           setIsGameOver(true);
           state.current.running = false;
 
@@ -664,15 +686,6 @@ export default function useGame(canvasRef) {
     };
   }, [canvasRef, isGameOver, isGameReady, nightMode]);
 
-  // Fonction pour jouer un son de manière sécurisée
-  function playSoundSafely(soundName) {
-    try {
-      // Utiliser directement le soundManager qui est déjà importé
-      soundManager.play(soundName, { pitchVariation: 0.05 });
-    } catch (error) {
-      console.error(`Erreur lors de la lecture du son ${soundName}:`, error);
-    }
-  }
 
   // Fonction de saut améliorée avec "double saut"
   function jump() {
