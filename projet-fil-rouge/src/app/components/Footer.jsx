@@ -1,79 +1,116 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const Footer = () => {
   return (
-    <footer className="bg-white shadow-lg mt-auto" role="contentinfo">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* À propos */}
-          <section aria-labelledby="footer-about">
-            <h3 id="footer-about" className="text-gray-800 font-semibold text-lg">À propos</h3>
-            <p className="text-gray-600 text-sm">
-              Notre entreprise s'engage à fournir des services de qualité et une expérience exceptionnelle à nos clients.
-            </p>
-          </section>
+    <footer className="bg-gradient-to-t from-orange-50 to-white">
+      
+      
 
-          {/* Liens rapides */}
-          <nav aria-labelledby="footer-links">
-            <h3 id="footer-links" className="text-gray-800 font-semibold text-lg">Liens rapides</h3>
+      <div className="max-w-7xl mx-auto px-4 pb-12 pt-8">
+        {/* Section principale */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 mb-12">
+          {/* Logo et description */}
+          <div className="lg:col-span-4 flex flex-col items-center lg:items-start">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="relative">
+                <Image
+                  src="/images/logo.png"
+                  alt="Logo Sebi"
+                  width={60}
+                  height={60}
+                  className="rounded-full shadow-md hover:shadow-xl transition-shadow duration-300"
+                />
+                <div className="absolute -inset-0.5 bg-orange-200 rounded-full blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+              </div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+                Sebi
+              </h2>
+            </div>
+            <p className="text-gray-600 text-center lg:text-left mb-6">
+              Une aventure éducative extraordinaire pour les petits explorateurs !
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div className="lg:col-span-2 flex flex-col items-center lg:items-start">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 relative group cursor-default">
+              Navigation
+              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-300"></div>
+            </h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm">Accueil</Link>
+                <Link href="/" className="text-gray-600 hover:text-orange-500 transition-colors duration-300 flex items-center group">
+                  <span className="w-5 h-0.5 bg-orange-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mr-2"></span>
+                  Accueil
+                </Link>
               </li>
               <li>
-                <Link href="/about" className="text-gray-600 hover:text-gray-900 text-sm">À propos</Link>
+                <Link href="/games" className="text-gray-600 hover:text-orange-500 transition-colors duration-300 flex items-center group">
+                  <span className="w-5 h-0.5 bg-orange-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mr-2"></span>
+                  Jeux
+                </Link>
               </li>
               <li>
-                <Link href="/services" className="text-gray-600 hover:text-gray-900 text-sm">Services</Link>
-              </li>
-              <li>
-                <Link href="/contact" className="text-gray-600 hover:text-gray-900 text-sm">Contact</Link>
+                <Link href="/help" className="text-gray-600 hover:text-orange-500 transition-colors duration-300 flex items-center group">
+                  <span className="w-5 h-0.5 bg-orange-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mr-2"></span>
+                  Aide
+                </Link>
               </li>
             </ul>
-          </nav>
+          </div>
+
+          {/* Légal */}
+          <div className="lg:col-span-3 flex flex-col items-center lg:items-start">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 relative group cursor-default">
+              Légal
+              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-300"></div>
+            </h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/privacy" className="text-gray-600 hover:text-orange-500 transition-colors duration-300 flex items-center group">
+                  <span className="w-5 h-0.5 bg-orange-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mr-2"></span>
+                  Confidentialité
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-gray-600 hover:text-orange-500 transition-colors duration-300 flex items-center group">
+                  <span className="w-5 h-0.5 bg-orange-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 mr-2"></span>
+                  Mentions légales
+                </Link>
+              </li>
+            </ul>
+          </div>
 
           {/* Contact */}
-          <section aria-labelledby="footer-contact">
-            <h3 id="footer-contact" className="text-gray-800 font-semibold text-lg">Contact</h3>
-            <ul className="space-y-2">
-              <li className="text-gray-600 text-sm">Email : <a href="mailto:contact@example.com" className="hover:underline">contact@example.com</a></li>
-              <li className="text-gray-600 text-sm">Tél : <a href="tel:+33123456789" className="hover:underline">+33 1 23 45 67 89</a></li>
-              <li className="text-gray-600 text-sm">Adresse : 123 Rue Example</li>
-            </ul>
-          </section>
-
-          {/* Réseaux sociaux */}
-          <section aria-labelledby="footer-social">
-            <h3 id="footer-social" className="text-gray-800 font-semibold text-lg">Suivez-nous</h3>
-            <div className="flex space-x-4" role="navigation" aria-label="Réseaux sociaux">
-              <a href="#" aria-label="Facebook" className="text-gray-600 hover:text-gray-900 transition-colors">
-                {/* Facebook Icon */}
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12..."/>
-                </svg>
-              </a>
-              <a href="#" aria-label="Twitter" className="text-gray-600 hover:text-gray-900 transition-colors">
-                {/* Twitter Icon */}
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M23.953 4.57a10 10 0 01-2.825.775..."/>
-                </svg>
-              </a>
-              <a href="#" aria-label="Instagram" className="text-gray-600 hover:text-gray-900 transition-colors">
-                {/* Instagram Icon */}
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 0C8.74 0 8.333.015 7.053.072..."/>
-                </svg>
+          <div className="lg:col-span-3 flex flex-col items-center lg:items-start">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 relative group cursor-default">
+              Contact
+              <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-400 group-hover:w-full transition-all duration-300"></div>
+            </h3>
+            <div className="space-y-3">
+              <a href="mailto:contact@sebi.fr" 
+                className="flex items-center space-x-2 text-gray-600 hover:text-orange-500 transition-colors duration-300 group">
+                <div className="p-2 rounded-full bg-orange-50 group-hover:bg-orange-100 transition-colors duration-300">
+                  <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <span>contact@sebi.fr</span>
               </a>
             </div>
-          </section>
+          </div>
         </div>
 
-        {/* Copyright */}
-        <div className="border-t border-gray-200 mt-8 pt-8 text-center">
-          <p className="text-gray-600 text-sm">
-            © {new Date().getFullYear()} Votre Entreprise. Tous droits réservés.
-          </p>
+        {/* Copyright et séparateur */}
+        <div className="relative">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-orange-200 to-transparent"></div>
+          <div className="pt-8 text-center">
+            <p className="text-gray-500 text-sm">
+              © {new Date().getFullYear()} Sebi. Tous droits réservés.
+            </p>
+          </div>
         </div>
       </div>
     </footer>
