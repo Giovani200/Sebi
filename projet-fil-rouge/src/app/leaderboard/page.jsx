@@ -45,7 +45,7 @@ export default function LeaderboardPage() {
             <section className="mb-10">
                 <h2 className="text-2xl font-semibold mb-2">🌍 Top 3 global</h2>
                 <ul className="bg-red shadow-md rounded-lg divide-y">
-                    { Array.isArray(top3) && top3.map((entry, index) => (
+                    {Array.isArray(top3) && top3.map((entry, index) => (
                         <li key={index} className="p-4 flex justify-between">
                             <span>{entry.user.firstName} {entry.user.lastName}</span>
                             <span className="font-bold">{entry.totalScore} pts</span>
@@ -59,11 +59,22 @@ export default function LeaderboardPage() {
                 <h2 className="text-2xl font-semibold mb-2">🎮 Classement par jeu</h2>
                 <ul className="bg-blue shadow-md rounded-lg divide-y">
                     {Array.isArray(bestByGame) && bestByGame.map((entry, index) => (
-                        <li key={index} className="p-4 flex justify-between">
-                            <span>
-                                {entry.user.firstName} – <span className="italic">{entry.game}</span>
-                            </span>
-                            <span className="font-bold">{entry.bestScore} pts</span>
+                        <li key={index} className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <img
+                                    src={
+                                        entry.user.avatar ||
+                                        `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(entry.user.firstName + entry.user.lastName)}`
+                                    }
+                                    alt={`${entry.user.firstName} ${entry.user.lastName}`}
+                                    className="w-10 h-10 rounded-full object-cover"
+                                />
+                                <span>
+                                    {entry.user.firstName} {entry.user.lastName}
+                                    <span className="italic text-gray-500 ml-2">({entry.game})</span>
+                                </span>
+                            </div>
+                            <span className="font-bold">{entry.totalScore || entry.bestScore} pts</span>
                         </li>
                     ))}
                 </ul>

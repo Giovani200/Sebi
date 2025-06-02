@@ -37,30 +37,56 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="max-w-sm mx-auto mt-10">
-      <h2 className="text-xl font-bold mb-4">Réinitialiser le mot de passe</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="password"
-          placeholder="Nouveau mot de passe"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Confirmez le mot de passe"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
-        <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">
-          Réinitialiser
-        </button>
-        {message && <p className="text-sm text-gray-700">{message}</p>}
-      </form>
+    <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat bg-fixed" style={{ 
+      backgroundImage: 'url(/images/foret.jpg)',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div className="bg-orange-50 p-8 rounded-lg shadow-lg w-96 animate-scaleIn">
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6 animate-slideIn">Réinitialiser le mot de passe</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="animate-fadeInUp animate-delay-100">
+            <input
+              type="password"
+              placeholder="NOUVEAU MOT DE PASSE"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300"
+              required
+            />
+          </div>
+
+          <div className="animate-fadeInUp animate-delay-200">
+            <input
+              type="password"
+              placeholder="CONFIRMEZ LE MOT DE PASSE"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-green-200 text-gray-700 py-2 rounded hover:bg-green-300 transition-all duration-300 mt-6 animate-fadeInUp animate-delay-300"
+          >
+            Réinitialiser
+          </button>
+          
+          {message && (
+            <p className={`text-sm ${message.includes('succès') ? 'text-green-600' : 'text-red-500'} mt-2 animate-fadeInUp text-center`}>
+              {message}
+            </p>
+          )}
+        </form>
+      </div>
     </div>
   );
 }

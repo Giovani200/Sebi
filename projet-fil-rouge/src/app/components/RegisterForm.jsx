@@ -1,118 +1,162 @@
-'use client'
-import Link from 'next/link'
-import { useState } from 'react'
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
 
 export default function RegisterForm() {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    age: '',
-    parentEmail: '',  // Ajout du champ parentEmail
-    password: '',  // Le mot de passe pour l'inscription
-  })
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [prenom, setPrenom] = useState('');
+    const [nom, setNom] = useState('');
+    const [age, setAge] = useState('');
+    const [emailParent, setEmailParent] = useState('');
+    const [showParentEmail, setShowParentEmail] = useState(false);
+    const [message, setMessage] = useState('');
 
-  const [errorMessage, setErrorMessage] = useState('')
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        setMessage('');
 
-  // Validation du formulaire
-  function validateForm({ firstName, lastName, email, age, parentEmail, password }) {
-    if (!firstName || !lastName || !email || !password || !age) {
-      return "Tous les champs sont requis."
-    }
-    if (!email.includes('@')) {
-      return "Adresse email invalide."
-    }
-    if (isNaN(age) || age < 4 || age > 120) {
-      return "Âge non valide."
-    }
-    if (age < 13 && !parentEmail) {
-      return "L'email du parent est requis pour les enfants de moins de 13 ans."
-    }
-    if (age < 13 && !parentEmail.includes('@')) {
-      return "L'email du parent est invalide."
-    }
-    return null
-  }
+        // Vérifier l'âge pour l'email parent
+        if (parseInt(age) < 14 && !emailParent) {
+            return setMessage("L'email d'un parent est requis pour les moins de 14 ans.");
+        }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+        const userData = {
+            email,
+            password,
+            prenom,
+            nom,
+            age: parseInt(age),
+            ...(showParentEmail && { emailParent })
+        };
 
-    const error = validateForm(formData)
-    if (error) {
-      setErrorMessage(error)
-      return
-    }
+        const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify(userData),
+            headers: { 'Content-Type': 'application/json' },
+        });
 
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
+        const data = await res.json();
+        if (!res.ok) return setMessage(data.message);
 
-      const result = await res.json()
-      if (!res.ok) {
-        setErrorMessage(result.message || "Une erreur est survenue.")
-      } else {
-        // Inscription réussie
-        alert("Inscription réussie !")
-      }
-    } catch (error) {
-      setErrorMessage("Erreur réseau. Réessaie.")
-    }
-  }
+        setMessage('Inscription réussie !');
+        // Rediriger ou mettre à jour l'état global ici
+    };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        placeholder="Prénom"
-        value={formData.firstName}
-        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-      />
-      <input
-        type="text"
-        placeholder="Nom"
-        value={formData.lastName}
-        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        value={formData.email}
-        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-      />
-      <input
-        type="number"
-        placeholder="Âge"
-        value={formData.age}
-        onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-      />
+    const handleAgeChange = (e) => {
+        const value = e.target.value;
+        setAge(value);
+        setShowParentEmail(parseInt(value) < 14);
+    };
 
-      {/* Champ parentEmail visible si l'âge est inférieur à 13 */}
-      {parseInt(formData.age) < 13 && (
-        <input
-          type="email"
-          placeholder="Email du parent"
-          value={formData.parentEmail}
-          onChange={(e) => setFormData({ ...formData, parentEmail: e.target.value })}
-        />
-      )}
+    return (
+        <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat bg-fixed" style={{ 
+            backgroundImage: 'url(/images/foret.jpg)',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        }}>
+            <div className="bg-orange-50 p-8 rounded-lg shadow-lg w-96 animate-scaleIn">
+                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6 animate-slideIn">Inscription</h2>
+                
+                <form onSubmit={handleRegister} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="animate-fadeInUp animate-delay-100">
+                            <input
+                                type="text"
+                                placeholder="PRÉNOM"
+                                value={prenom}
+                                onChange={e => setPrenom(e.target.value)}
+                                className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300"
+                                required
+                            />
+                        </div>
+                        
+                        <div className="animate-fadeInUp animate-delay-100">
+                            <input
+                                type="text"
+                                placeholder="NOM"
+                                value={nom}
+                                onChange={e => setNom(e.target.value)}
+                                className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300"
+                                required
+                            />
+                        </div>
+                    </div>
 
-      <input
-        type="password"
-        placeholder="Mot de passe"
-        value={formData.password}
-        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-      />
+                    <div className="animate-fadeInUp animate-delay-200">
+                        <input
+                            type="email"
+                            placeholder="EMAIL"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300"
+                            required
+                        />
+                    </div>
 
-      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
-      <button type="submit">S'inscrire</button>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="animate-fadeInUp animate-delay-200">
+                            <input
+                                type="number"
+                                placeholder="ÂGE"
+                                value={age}
+                                onChange={handleAgeChange}
+                                className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300"
+                                required
+                                min="4"
+                                max="120"
+                            />
+                        </div>
 
-      <div className="text-sm mt-2">
-        <p>Déjà inscrit ? <Link href="/login" className="text-blue-500 underline">Se connecter</Link></p>
-      </div>
+                        <div className="animate-fadeInUp animate-delay-200">
+                            <input
+                                type="password"
+                                placeholder="MOT DE PASSE"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300"
+                                required
+                            />
+                        </div>
+                    </div>
 
-    </form>
-  )
+                    {showParentEmail && (
+                        <div className="animate-fadeInUp">
+                            <input
+                                type="email"
+                                placeholder="EMAIL PARENT"
+                                value={emailParent}
+                                onChange={e => setEmailParent(e.target.value)}
+                                className="w-full text-gray-600 p-2 border-b-2 border-gray-600 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300"
+                                required
+                            />
+                        </div>
+                    )}
+
+                    {message && <p className="text-sm text-red-500 mt-2 animate-fadeInUp">{message}</p>}
+
+                    <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                        <button
+                            type="submit"
+                            className="w-full bg-green-200 text-gray-700 py-2 rounded hover:bg-green-300 transition-all duration-300 animate-fadeInUp animate-delay-300"
+                        >
+                            Valider
+                        </button>
+                        <Link
+                            href="/login"
+                            className="w-full bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300 transition-all duration-300 text-center animate-fadeInUp animate-delay-300"
+                        >
+                            Connexion
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
 }

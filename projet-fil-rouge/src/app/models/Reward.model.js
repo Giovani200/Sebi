@@ -1,27 +1,46 @@
 import mongoose from 'mongoose';
 
-const rewardSchema = new mongoose.Schema({
-     userId: {
+const RewardSchema = new mongoose.Schema({
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
     required: true,
-  },
-  gameSlug: {
-    type: String,
-    required: true,
+    ref: 'User'
   },
   milestone: {
     type: Number,
-    required: true,
+    required: true
+  },
+  gameSlug: {
+    type: String,
+    required: true
   },
   imageUrl: {
     type: String,
-    required: true,
+    required: true
   },
-  createdAt: {
+  prompt: {
+    type: String,
+    required: true
+  },
+  title: {
+    type: String,
+    default: 'Nouvelle récompense'
+  },
+  description: {
+    type: String,
+    default: 'Félicitations pour ton accomplissement!'
+  },
+  generatedAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now
   },
-})
+  viewed: {
+    type: Boolean,
+    default: false
+  }
+});
 
-export default mongoose.models.Reward || mongoose.model('Reward', rewardSchema);
+// Création d'un index composé pour garantir l'unicité
+RewardSchema.index({ userId: 1, milestone: 1, gameSlug: 1 }, { unique: true });
+
+export default mongoose.models.Reward || mongoose.model('Reward', RewardSchema);

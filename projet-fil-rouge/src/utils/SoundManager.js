@@ -6,7 +6,9 @@
 class SoundManager {
   constructor() {
     this.sounds = {};
+    this.backgroundMusic = null;
     this.volume = 0.5;
+    this.musicVolume = 0.3; // Volume plus bas pour la musique de fond
     this.muted = false;
     this.isMobile = this.detectMobile();
   }
@@ -71,6 +73,56 @@ class SoundManager {
   }
 
   /**
+   * Charge et configure la musique de fond
+   * @param {string} path - Chemin du fichier de musique
+   */
+  loadBackgroundMusic(path) {
+    try {
+      this.backgroundMusic = new Audio(path);
+      this.backgroundMusic.volume = this.musicVolume;
+      this.backgroundMusic.loop = true; // La musique se joue en boucle
+      
+      console.log(`Musique de fond chargée: ${path}`);
+      
+      // Gestion des erreurs
+      this.backgroundMusic.onerror = (e) => {
+        console.error(`Erreur lors du chargement de la musique: ${path}`, e);
+        this.backgroundMusic = null;
+      };
+      
+      return true;
+    } catch(e) {
+      console.error(`Impossible de charger la musique: ${path}`, e);
+      return false;
+    }
+  }
+  
+  /**
+   * Démarre la lecture de la musique de fond
+   */
+  playBackgroundMusic() {
+    if (this.muted || !this.backgroundMusic) return;
+    
+    // Promise pour gérer le démarrage de la musique (qui peut être bloqué par le navigateur)
+    const playPromise = this.backgroundMusic.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.catch(error => {
+        console.warn("La lecture automatique de la musique a été empêchée par le navigateur", error);
+      });
+    }
+  }
+  
+  /**
+   * Met en pause la musique de fond
+   */
+  pauseBackgroundMusic() {
+    if (this.backgroundMusic && !this.backgroundMusic.paused) {
+      this.backgroundMusic.pause();
+    }
+  }
+
+  /**
    * Joue un son avec gestion des erreurs
    * @param {string} key - Clé du son à jouer
    * @param {Object} options - Options (pitchVariation, volume)
@@ -115,7 +167,7 @@ class SoundManager {
   }
 
   /**
-   * Change le volume global
+   * Change le volume global des effets sonores
    * @param {number} volume - Volume entre 0 et 1
    */
   setVolume(volume) {
@@ -124,9 +176,20 @@ class SoundManager {
       sound.volume = this.isMobile ? this.volume * 0.6 : this.volume;
     }
   }
+  
+  /**
+   * Change le volume de la musique de fond
+   * @param {number} volume - Volume entre 0 et 1
+   */
+  setMusicVolume(volume) {
+    this.musicVolume = Math.max(0, Math.min(1, volume));
+    if (this.backgroundMusic) {
+      this.backgroundMusic.volume = this.musicVolume;
+    }
+  }
 
   /**
-   * Active/désactive les sons
+   * Active/désactive tous les sons
    * @param {boolean} muted - État muet (true) ou non (false)
    */
   setMuted(muted) {
@@ -137,6 +200,11 @@ class SoundManager {
         sound.pause();
         sound.currentTime = 0;
       }
+      // Arrêter la musique de fond
+      this.pauseBackgroundMusic();
+    } else if (this.backgroundMusic) {
+      // Reprendre la musique quand on réactive le son
+      this.playBackgroundMusic();
     }
   }
 }

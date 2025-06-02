@@ -53,6 +53,7 @@ export async function GET(req) {
                 game: "$_id.game",
                 bestScore: 1,
                 "user.firstName": 1,
+                "user.avatar": 1,
             },
         },
 

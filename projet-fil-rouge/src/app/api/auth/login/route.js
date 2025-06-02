@@ -26,9 +26,8 @@ export const POST = async (req) => {
   }
 
   if (!user.isParentApproved) {
-  return NextResponse.json({ message: "Le compte n’a pas encore été validé par les parents." }, { status: 403 });
-}
-
+    return NextResponse.json({ message: "Le compte n'a pas encore été validé par les parents." }, { status: 403 });
+  }
 
   // Génération du token JWT
   const jwtToken = jwt.sign(
@@ -37,8 +36,9 @@ export const POST = async (req) => {
     { expiresIn: '7d' }
   );
 
-  // Écriture du cookie
-  cookies().set('token', jwtToken, {
+  // Écriture du cookie - CORRIGÉ
+  const cookieStore = await cookies();
+  cookieStore.set('token', jwtToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 60 * 60 * 24 * 7, // 1 semaine
