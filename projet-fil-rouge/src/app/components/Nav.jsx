@@ -23,7 +23,7 @@ const Nav = () => {
                 height={40}
                 className="rounded-full"
               />
-              <span className="font-bold text-xl text-gray-800">Sebi</span>
+              <span className="font-bold text-xl text-gray-800">Home</span>
             </Link>
 
             {/* Navigation principale */}
