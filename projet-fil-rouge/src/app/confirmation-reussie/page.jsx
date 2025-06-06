@@ -3,7 +3,17 @@ import Link from 'next/link';
 
 export default function ConfirmationReussie() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cover bg-center animate-fadeInUp" style={{ backgroundImage: 'url(/images/foret.png)' }}>
+    <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat bg-fixed" style={{ 
+      backgroundImage: 'url(/images/foret.jpg)',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
       <div className="bg-orange-50 p-8 rounded-lg shadow-lg w-96 animate-scaleIn text-center">
         <div className="text-green-500 text-5xl mb-4 animate-scaleIn">✓</div>
         <h2 className="text-2xl font-bold text-gray-800 mb-4 animate-slideIn">

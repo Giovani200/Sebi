@@ -2,14 +2,20 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { generateObstacle } from "../utils/gameGeneratorsSimple";
 import soundManager from "../utils/SoundManager";
 import { validateCollisions } from "../utils/collisionTests";
+// import { jwtDecode } from "jwt-decode"; // Import important pour décoder le token
+// import RewardNotification from "../components/RewardNotification";
 
 // Définition des constantes initiales
 const SEBI_INITIAL = { x: 100, y: 100, w: 80, h: 80, vy: 0, vx: 0, jumping: false };
+
+// Paliers de récompenses
+// const REWARD_MILESTONES = [100, 200, 300, 500, 1000];
 
 // Debug mode - mettre à true pendant le développement pour voir les hitboxes
 const DEBUG_HITBOX = false;
 
 export default function useGame(canvasRef) {
+  const [rewardUnlocked, setRewardUnlocked] = useState(null);
   // États
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -17,6 +23,12 @@ export default function useGame(canvasRef) {
   const [nightMode, setNightMode] = useState(false);
   const [isGameReady, setIsGameReady] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+
+  // Pour suivre les paliers déjà débloqués
+  const unlockedMilestonesRef = useRef(new Set());
+  const scoreSubmittedRef = useRef(false);
+
+
 
   // État du jeu
   const state = useRef({
@@ -33,7 +45,6 @@ export default function useGame(canvasRef) {
 
   // Préchargement des images et sons
   const imagesRef = useRef({});
-  const soundsRef = useRef({});
 
   useEffect(() => {
     console.log("Loading images...");
@@ -59,7 +70,7 @@ export default function useGame(canvasRef) {
       img.src = src;
 
       // Gestionnaire d'erreur pour charger la version standard si la version optimisée n'existe pas
-      img.onerror = (e) => {
+      img.onerror = () => {
         console.warn(`Failed to load optimized image ${src}, falling back to standard version`);
         const standardSrc = src.replace('-small.png', '.png');
         img.src = standardSrc;
@@ -76,8 +87,11 @@ export default function useGame(canvasRef) {
     try {
       // Charger uniquement le son de saut (les autres sons ont été supprimés)
       soundManager.loadSounds({
-        jump: '/jump.mp3'
+        jump: '/music/jump.wav'
       });
+
+      // Chargement de la musique de fond
+      soundManager.loadBackgroundMusic('/music/savannah.mp3');
 
       console.log("Sounds loaded successfully");
     } catch (e) {
@@ -85,10 +99,47 @@ export default function useGame(canvasRef) {
     }
   }, []);
 
-  // Charger le high score
+  // Démarrer ou arrêter la musique selon l'état du jeu
   useEffect(() => {
-    // Charger le high score depuis le localStorage
-    setHighScore(Number(localStorage.getItem("sebi-highscore") || 0));
+    // Démarrer la musique quand le jeu est prêt
+    if (isGameReady && !isGameOver) {
+      soundManager.playBackgroundMusic();
+    }
+
+    // Mettre en pause la musique quand le jeu est terminé
+    if (isGameOver) {
+      soundManager.pauseBackgroundMusic();
+    }
+
+    return () => {
+      // Arrêter la musique quand le composant est démonté
+      soundManager.pauseBackgroundMusic();
+    };
+  }, [isGameReady, isGameOver]);
+
+  // Charger le high score depuis l'API
+  useEffect(() => {
+    // Charger le high score local comme fallback
+    const localHighScore = Number(localStorage.getItem("sebi-highscore") || 0);
+    setHighScore(localHighScore);
+
+    // Récupérer le highscore depuis l'API
+    fetch("/api/scores?gameSlug=sebi-run", {
+      credentials: 'include'
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Highscore reçu de l'API:", data);
+        // Si le score du serveur est supérieur, on le prend
+        if (data.highscore > localHighScore) {
+          setHighScore(data.highscore);
+          localStorage.setItem("sebi-highscore", data.highscore);
+        }
+      })
+      .catch(err => {
+        console.error("Erreur lors de la récupération du highscore:", err);
+        // On garde le highscore local en cas d'erreur
+      });
 
     // Vérifier si le tutoriel a déjà été vu
     const tutorialSeen = localStorage.getItem("sebi-tutorial-seen");
@@ -225,7 +276,7 @@ export default function useGame(canvasRef) {
     }
 
     // Fonction pour dessiner un obstacle
-    function drawObstacle(o, now = 0, isMobile = false) {
+    function drawObstacle(o, isMobile = false) {
       // Uniquement des buissons dans cette version simplifiée
       const bushImg = imagesRef.current.bush;
 
@@ -395,15 +446,8 @@ export default function useGame(canvasRef) {
       }
     }
 
-    // Activer ce mode pour visualiser les hitboxes pendant le développement
-    // Le DEBUG_HITBOX est défini en haut du fichier
-
     // Fonction de détection de collision avec tolérance ajustable
-    function detectCollision(rect1, rect2, tolerance = 0.7) {
-      // La détection de collision est maintenant activée
-
-      // Récupération des rectangles avec les dimensions déjà ajustées
-
+    function detectCollision(rect1, rect2) {
       // Réduire considérablement la marge pour rendre les collisions plus précises
       const xMargin = rect1.w * 0.2; // 20% de marge horizontale pour Sebi (réduit sa largeur effective)
       const yMargin = rect1.h * 0.1; // 10% de marge verticale (légèrement augmentée)
@@ -499,7 +543,7 @@ export default function useGame(canvasRef) {
       drawBackground(isMobile);
 
       // Dessiner les obstacles
-      state.current.obstacles.forEach(o => drawObstacle(o, now, isMobile));
+      state.current.obstacles.forEach(o => drawObstacle(o, isMobile));
 
       // Dessiner Sebi
       drawPlayer(state.current.sebi, now, isMobile);
@@ -575,7 +619,8 @@ export default function useGame(canvasRef) {
       // Vérifier et mettre à jour le high score si nécessaire
       if (state.current.currentDistance > highScore) {
         setHighScore(state.current.currentDistance);
-        localStorage.setItem("sebi-highscore", String(state.current.currentDistance));
+        localStorage.setItem("sebi-highscore", state.current.currentDistance);
+        // Ne pas envoyer le score ici pour éviter les requêtes multiples
       }
 
       // Activer le mode nuit périodiquement
@@ -603,8 +648,50 @@ export default function useGame(canvasRef) {
           // Collision détectée - fin du jeu
           console.log("Collision avec un obstacle ! Game over");
 
-          // Jouer le son du saut pour simuler l'impact (puisque le son de collision a été supprimé)
+          // Jouer le son du saut pour simuler l'impact
           soundManager.play('jump', { pitchVariation: 0.15, volume: 0.8 });
+
+          // Vérifier si le score a déjà été envoyé
+          if (!scoreSubmittedRef.current) {
+            scoreSubmittedRef.current = true;
+
+            // Enregistrer le score final
+            fetch("/api/scores", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                score: state.current.currentDistance,
+                gameSlug: "sebi-run",
+              }),
+              credentials: 'include',
+            })
+              .then(res => res.json())
+              .then(data => {
+                console.log("Score enregistré:", data);
+
+                // Mettre à jour le highscore si nécessaire
+                if (data.highscore) {
+                  setHighScore(data.highscore);
+                  localStorage.setItem("sebi-highscore", data.highscore);
+                }
+
+                // Afficher la récompense si une a été débloquée
+                if (data.reward) {
+                  setRewardUnlocked(data.reward);
+
+                  // Jouer un son de récompense
+                  soundManager.play('jump', { pitchVariation: -0.2, volume: 1.2 });
+
+                  // Cacher la notification après quelques secondes
+                  setTimeout(() => {
+                    setRewardUnlocked(null);
+                  }, 6000);
+                }
+              })
+              .catch(err => {
+                console.error("Erreur d'enregistrement du score final:", err);
+              });
+          }
 
           // Mettre fin au jeu
           setIsGameOver(true);
@@ -648,6 +735,9 @@ export default function useGame(canvasRef) {
       resetObstacles();
       lastTime = performance.now();
 
+      // Réinitialiser les paliers débloqués
+      unlockedMilestonesRef.current.clear();
+
       // Toujours mettre running à true pour lancer la boucle
       state.current.running = true;
 
@@ -664,30 +754,14 @@ export default function useGame(canvasRef) {
     };
   }, [canvasRef, isGameOver, isGameReady, nightMode]);
 
-  // Fonction pour jouer un son de manière sécurisée
-  function playSoundSafely(soundName) {
-    try {
-      // Utiliser directement le soundManager qui est déjà importé
-      soundManager.play(soundName, { pitchVariation: 0.05 });
-    } catch (error) {
-      console.error(`Erreur lors de la lecture du son ${soundName}:`, error);
-    }
-  }
-
   // Fonction de saut améliorée avec "double saut"
   function jump() {
-    console.log("Jump function called - GameOver:", isGameOver);
-
     if (isGameOver) return;
 
     const g = state.current.sebi;
-    console.log("Current Sebi state:", g.jumping ? "jumping" : "on ground",
-      "vertical velocity:", g.vy,
-      "position:", g.y);
 
     if (!g.jumping) {
       // Premier saut - saut normal
-      console.log("Initiating primary jump with power:", state.current.jumpPower);
       g.vy = state.current.jumpPower;
 
       // Ajouter une vitesse horizontale plus dynamique
@@ -704,7 +778,6 @@ export default function useGame(canvasRef) {
       soundManager.play('jump', { pitchVariation: 0.05 });
     } else if (g.doubleJumpAvailable && g.vy > state.current.jumpPower * 0.3) {
       // Double saut - plus petit, uniquement disponible pendant la descente
-      console.log("Initiating double jump!");
       // 70% de la puissance du saut initial
       g.vy = state.current.jumpPower * 0.7;
 
@@ -716,8 +789,6 @@ export default function useGame(canvasRef) {
 
       // Jouer le son de saut avec un pitch différent
       soundManager.play('jump', { pitchVariation: 0.05, volume: 0.7 });
-    } else {
-      console.log("Jump ignored - already in the air or double jump used");
     }
   }
 
@@ -732,6 +803,12 @@ export default function useGame(canvasRef) {
 
     // Réinitialiser le score
     state.current.currentDistance = 0;
+
+    // Réinitialiser les paliers débloqués
+    unlockedMilestonesRef.current.clear();
+
+    // Réinitialiser le drapeau de soumission de score
+    scoreSubmittedRef.current = false;
 
     setTimeout(() => {
       const canvas = canvasRef.current;
@@ -753,9 +830,37 @@ export default function useGame(canvasRef) {
     localStorage.setItem("sebi-tutorial-seen", "true");
   }, []);
 
+  //reset password 
+
+  const resetHighScore = useCallback(() => {
+    console.log("Réinitialisation du highscore");
+
+    // Réinitialiser le highscore local
+    setHighScore(0);
+    localStorage.setItem("sebi-highscore", "0");
+
+    // Réinitialiser le highscore en base de données
+    fetch("/api/scores/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gameSlug: "sebi-run"
+      }),
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Highscore réinitialisé:", data);
+        // Optionnel : afficher une notification
+      })
+      .catch(err => {
+        console.error("Erreur lors de la réinitialisation du highscore:", err);
+      });
+  }, []);
+
   // Retourner les états et fonctions nécessaires
   return {
-    state: state, // Pour permettre aux composants d'accéder au state actuel
+    state: state,
     score,
     highScore,
     isGameOver,
@@ -774,6 +879,8 @@ export default function useGame(canvasRef) {
 
       jump();
     },
-    reset
+    reset,
+    rewardUnlocked,
+    resetHighScore
   };
 }
