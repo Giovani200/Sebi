@@ -1,143 +1,305 @@
-
 'use client';
 import Image from 'next/image';
-import Link from 'next/link'; // Ajout de l'import Link
-
-
-
-
-const games = [
-        {
-        // name: "Sebi la Gazelle",
-        // description: "Un jeu de plateforme où vous devez aider Sebi à collecter des pièces et à éviter les obstacles.",
-        // image: sebi,
-        link: "/games/sebi_la_gazelle",
-        }
-    ];
+import Link from 'next/link';
+import { useEffect, useState, useRef } from 'react';
+import soundManager from '../../utils/SoundManager';
 
 export default function Games() {
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-orange-50 pt-24 pb-16">
-      <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-12">
-          Choisis ton compagnon de jeu !
-        </h1>
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const animationFrameRef = useRef(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isSoundPlaying, setIsSoundPlaying] = useState(true);
 
+  // Gestion de l'entrée sur la page avec animation
+  useEffect(() => {
+    // Animation d'entrée
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, 300);
+
+    // Chargement du son d'ambiance
+    soundManager.loadSounds({
+      'ambiance': '/music/kids-playground.mp3',
+      'hover': '/music/hover.mp3',
+      'click': '/music/click.mp3'
+    });
+
+    // Animation des nuages
+    const clouds = document.querySelectorAll('.cloud');
+    clouds.forEach(cloud => {
+      const speed = 0.2 + Math.random() * 0.3;
+      const direction = Math.random() > 0.5 ? 1 : -1;
+      const startPos = Math.random() * 100;
+
+      cloud.style.left = `${startPos}%`;
+
+      let position = startPos;
+      function animateCloud() {
+        position += speed * direction;
+        if (position > 120) position = -20;
+        if (position < -20) position = 120;
+        cloud.style.left = `${position}%`;
+        animationFrameRef.current = requestAnimationFrame(animateCloud);
+      }
+
+      animateCloud();
+    });
+
+    // Suivi de la souris pour les éléments interactifs
+    const handleMouseMove = (e) => {
+      setMousePosition({
+        x: e.clientX,
+        y: e.clientY
+      });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Animation des étoiles flottantes
+    const stars = document.querySelectorAll('.floating-star');
+    stars.forEach(star => {
+      const floatRange = 15 + Math.random() * 10;
+      const floatSpeed = 2 + Math.random() * 2;
+      const startY = parseFloat(getComputedStyle(star).top);
+      let angle = Math.random() * Math.PI * 2;
+
+      function animateStar() {
+        angle += 0.02 * floatSpeed;
+        const y = startY + Math.sin(angle) * floatRange;
+        star.style.top = `${y}px`;
+        animationFrameRef.current = requestAnimationFrame(animateStar);
+      }
+
+      animateStar();
+    });
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+
+      // Arrêter la musique quand on quitte la page
+      const ambianceSound = soundManager.sounds['ambiance'];
+      if (ambianceSound) {
+        ambianceSound.pause();
+        ambianceSound.currentTime = 0;
+      }
+    };
+  }, []);
+
+  // Fonction pour jouer/mettre en pause l'ambiance sonore
+  const toggleSound = () => {
+    if (isSoundPlaying) {
+      // Arrêter le son
+      const ambianceSound = soundManager.sounds['ambiance'];
+      if (ambianceSound) {
+        ambianceSound.pause();
+      }
+      setIsSoundPlaying(false);
+    } else {
+      // Jouer le son avec un volume bas
+      soundManager.play('ambiance', { volume: 0.2, loop: true });
+      setIsSoundPlaying(true);
+    }
+
+    // Effet sonore de clic
+    soundManager.play('click', { volume: 0.5, pitchVariation: 0.1 });
+  };
+
+  // Sons sur les cartes
+  const playHoverSound = () => {
+    soundManager.play('hover', { volume: 0.3, pitchVariation: 0.1 });
+  };
+
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-amber-100 pt-46 pb-16 overflow-hidden">
+
+      {/* Bouton de contrôle du son */}
+      <button
+        onClick={toggleSound}
+        className="fixed top-24 right-6 z-10 bg-white/80 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
+        aria-label={isSoundPlaying ? "Désactiver le son" : "Activer le son"}
+      >
+        {isSoundPlaying ? (
+          <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M6.5 8.5l4-4v15l-4-4H4a1 1 0 01-1-1v-5a1 1 0 011-1h2.5z" />
+          </svg>
+        ) : (
+          <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clipRule="evenodd" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+        )}
+      </button>
+
+
+      {/* Éléments décoratifs en arrière-plan */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Nuages */}
+        <div className="cloud absolute top-[10%] w-24 h-16 bg-white rounded-full"></div>
+        <div className="cloud absolute top-[20%] w-32 h-20 bg-white rounded-full"></div>
+        <div className="cloud absolute top-[15%] w-28 h-18 bg-white rounded-full"></div>
+
+        {/* Étoiles flottantes */}
+        <div className="floating-star absolute left-[15%] top-[30%] text-4xl">✨</div>
+        <div className="floating-star absolute left-[75%] top-[25%] text-3xl">⭐</div>
+        <div className="floating-star absolute left-[60%] top-[70%] text-2xl">✨</div>
+
+        {/* Formes géométriques flottantes */}
+        <div className="absolute left-[10%] top-[60%] w-16 h-16 bg-orange-200/30 rounded-full animate-float-slow"></div>
+        <div className="absolute right-[10%] top-[40%] w-12 h-12 bg-amber-200/30 rotate-45 animate-float-slow animation-delay-1000"></div>
+      </div>
+
+      {/* Contenu principal avec animation d'entrée */}
+      <div className={`max-w-7xl mx-auto px-4 relative transition-all duration-1000 ease-out transform ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        {/* Titre avec bulles d'animation */}
+        <div className="relative text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-4 animate-bounce-once">
+            À quoi veux-tu jouer aujourd'hui ?
+          </h1>
+          <div className="text-xl md:text-2xl font-medium text-orange-600 animate-fade-in animation-delay-500">
+            Choisis ton compagnon d'aventure !
+          </div>
+
+          {/* Bulles décoratives */}
+          <div className="absolute -top-8 -left-8 w-12 h-12 rounded-full bg-orange-200 animate-bounce-slow opacity-70"></div>
+          <div className="absolute top-2 right-12 w-8 h-8 rounded-full bg-amber-300 animate-pulse opacity-70"></div>
+
+          {/* Mascotte Sebi qui saute (apparaît de temps en temps) */}
+          <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 animate-jump-in-out">
+            <div className="relative w-16 h-16">
+              <Image
+                src="/images/SEBI.png"
+                alt="Sebi mascotte"
+                fill
+                className="object-contain"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Conteneur de cartes avec effet d'apparition séquentielle */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* Carte Sebi */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-lg md:shadow-xl
-                          md:group md:hover:bg-orange-50 md:transition-all md:duration-500
-                          md:hover:shadow-orange-200 md:hover:-translate-y-1">
+
+          {/* Carte Sebi avec effets 3D et interaction à la souris */}
+          <div
+            className={`bg-white rounded-3xl overflow-hidden shadow-lg border-4 border-orange-200
+                      transform transition-all duration-500 hover:-translate-y-3 hover:shadow-xl
+                      ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
+            style={{
+              transitionDelay: '300ms',
+              transform: mousePosition.x ? `perspective(1000px) rotateY(${(mousePosition.x / window.innerWidth - 0.5) * 5}deg) rotateX(${(mousePosition.y / window.innerHeight - 0.5) * -5}deg)` : 'none'
+            }}
+            // onMouseEnter={playHoverSound}
+          >
             <div className="p-6 relative">
-              {/* Effet de fond animé - visible uniquement sur desktop */}
-              <div className="hidden md:block absolute inset-0 bg-gradient-to-br from-orange-100/0 to-orange-100/0 
-                            md:group-hover:from-orange-100/50 md:group-hover:to-orange-200/30 transition-all duration-500">
-                {/* Effet de particules */}
-                <div className="absolute inset-0 opacity-0 md:group-hover:opacity-100 transition-opacity duration-700">
-                  <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-orange-200 rounded-full animate-ping"></div>
-                  <div className="absolute top-3/4 left-2/3 w-2 h-2 bg-orange-200 rounded-full animate-ping delay-150"></div>
-                  <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-orange-200 rounded-full animate-ping delay-300"></div>
-                </div>
-              </div>
-              
+              {/* Fond coloré et amusant avec animation */}
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-100/50 to-amber-100/50"></div>
+
+              {/* Cercles décoratifs animés */}
+              <div className="absolute w-32 h-32 rounded-full bg-orange-100 right-0 bottom-0 transform translate-x-16 translate-y-16 animate-pulse-slow"></div>
+              <div className="absolute w-24 h-24 rounded-full bg-amber-50 left-0 top-0 transform -translate-x-12 -translate-y-12 animate-pulse-slow animation-delay-500"></div>
+
               <div className="flex flex-col items-center relative z-10">
-                {/* Image avec effet de zoom sur desktop uniquement */}
-                <div className="relative w-48 h-48 md:w-64 md:h-64 mb-6 md:transform md:group-hover:scale-110 
-                             md:transition-all md:duration-500 md:hover:rotate-2">
+                {/* Image avec effet de rebond et interaction */}
+                <div className="relative w-48 h-48 md:w-64 md:h-64 mb-6 transform hover:scale-110 transition-all duration-300 hover:animate-bounce">
+                  <div className="absolute -inset-6 bg-orange-300/20 rounded-full blur-xl"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent to-orange-100/50 animate-pulse-very-slow rounded-full"></div>
                   <Image
                     src="/images/SEBI.png"
                     alt="Sebi la gazelle"
                     fill
-                    className="object-contain md:group-hover:filter md:group-hover:brightness-110"
+                    className="object-contain"
                   />
-                  
-                  {/* Effet de halo - desktop uniquement */}
-                  <div className="hidden md:block absolute -inset-4 bg-orange-200/0 md:group-hover:bg-orange-200/20 
-                               rounded-full blur-2xl transition-all duration-500"></div>
                 </div>
 
-                {/* Texte avec animation sur desktop uniquement */}
-                <div className="md:transform md:group-hover:-translate-y-2 md:transition-transform md:duration-500">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:group-hover:text-orange-600 md:transition-colors md:duration-300">
+                {/* Texte simplifié pour enfants avec animation */}
+                <div className="animate-fade-in animation-delay-700">
+                  <h2 className="text-2xl md:text-3xl font-bold text-orange-600 mb-3">
                     Joue avec Sebi !
                   </h2>
-                  <p className="text-gray-600 text-center mb-6 md:group-hover:text-gray-700">
-                    Rejoins Sebi la gazelle pour une aventure passionnante pleine de défis amusants !
+                  <p className="text-lg text-gray-700 text-center mb-6">
+                    Aide Sebi à sauter par-dessus les obstacles !
                   </p>
                 </div>
 
-                {/* Bouton remplacé par Link tout en conservant le style */}
-                <Link 
-                  href="/games/sebi_la_gazelle" 
-                  className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 md:px-8 py-3 
-                           rounded-full font-semibold shadow-md relative z-10 overflow-hidden
-                           md:group-hover:shadow-xl md:transform md:group-hover:-translate-y-0.5 
-                           md:transition-all md:duration-300 md:hover:scale-105 inline-block"
+                {/* Bouton plus grand et plus coloré avec effets avancés */}
+                <Link
+                  href="/games/sebi_la_gazelle"
+                  className="relative group bg-gradient-to-r from-orange-400 to-orange-600 text-white text-xl
+                           px-8 py-4 rounded-full font-bold shadow-lg flex items-center space-x-3
+                           hover:shadow-orange-200/50 hover:shadow-xl transition-all duration-300
+                           animate-pulse-subtle"
                 >
-                  <span className="relative z-10 md:group-hover:tracking-wider transition-all duration-300">
-                    Commencer l'aventure
-                  </span>
-                  <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-orange-500 to-orange-600 
-                               opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="hidden md:block absolute inset-0 -z-10 bg-gradient-to-r from-orange-400/0 via-white/50 to-orange-400/0
-                               opacity-0 group-hover:opacity-100 group-hover:animate-shimmer"></div>
+                  <span>Jouer maintenant !</span>
+                  <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
+                  </svg>
+                  <div className="absolute inset-0 -z-10 bg-gradient-to-r from-orange-400/0 via-white/30 to-orange-400/0
+                               opacity-0 group-hover:opacity-100 group-hover:animate-shimmer rounded-full"></div>
                 </Link>
               </div>
             </div>
           </div>
-          
-          {/* Carte James */}
-          <div className="bg-white rounded-2xl overflow-hidden shadow-lg md:shadow-xl
-                          md:group md:hover:bg-orange-50 md:transition-all md:duration-500
-                          md:hover:shadow-orange-200 md:hover:-translate-y-1">
+
+          {/* Carte James avec délai d'animation */}
+          <div
+            className={`bg-white rounded-3xl overflow-hidden shadow-lg border-4 border-amber-200
+                      transform transition-all duration-500 hover:-translate-y-3 hover:shadow-xl
+                      ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
+            style={{
+              transitionDelay: '500ms',
+              transform: mousePosition.x ? `perspective(1000px) rotateY(${(mousePosition.x / window.innerWidth - 0.5) * 5}deg) rotateX(${(mousePosition.y / window.innerHeight - 0.5) * -5}deg)` : 'none'
+            }}
+            // onMouseEnter={playHoverSound}
+          >
             <div className="p-6 relative">
-              {/* Effet de fond animé - visible uniquement sur desktop */}
-              <div className="hidden md:block absolute inset-0 bg-gradient-to-br from-orange-100/0 to-orange-100/0 
-                            md:group-hover:from-orange-100/50 md:group-hover:to-orange-200/30 transition-all duration-500">
-                {/* Effet de particules */}
-                <div className="absolute inset-0 opacity-0 md:group-hover:opacity-100 transition-opacity duration-700">
-                  <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-orange-200 rounded-full animate-ping"></div>
-                  <div className="absolute top-3/4 left-2/3 w-2 h-2 bg-orange-200 rounded-full animate-ping delay-150"></div>
-                  <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-orange-200 rounded-full animate-ping delay-300"></div>
-                </div>
-              </div>
-              
+              {/* Fond coloré et amusant */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-50/80 to-orange-100/50"></div>
+
+              {/* Cercles décoratifs animés */}
+              <div className="absolute w-32 h-32 rounded-full bg-amber-100 right-0 bottom-0 transform translate-x-16 translate-y-16 animate-pulse-slow animation-delay-700"></div>
+              <div className="absolute w-24 h-24 rounded-full bg-orange-50 left-0 top-0 transform -translate-x-12 -translate-y-12 animate-pulse-slow animation-delay-1000"></div>
+
               <div className="flex flex-col items-center relative z-10">
-                {/* Image avec effet de zoom sur desktop uniquement */}
-                <div className="relative w-48 h-48 md:w-64 md:h-64 mb-6 md:transform md:group-hover:scale-110 md:transition-transform md:duration-500">
+                {/* Image avec effet de balancement */}
+                <div className="relative w-48 h-48 md:w-64 md:h-64 mb-6 transform hover:scale-110 transition-all duration-300 hover:rotate-3">
+                  <div className="absolute -inset-6 bg-amber-300/20 rounded-full blur-xl"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-transparent to-amber-100/50 animate-pulse-very-slow rounded-full"></div>
                   <Image
                     src="/images/james.png"
                     alt="James le hibou"
                     fill
                     className="object-contain"
                   />
-                  
-                  {/* Effet de halo - desktop uniquement */}
-                  <div className="hidden md:block absolute -inset-4 bg-orange-200/0 md:group-hover:bg-orange-200/20 
-                               rounded-full blur-2xl transition-all duration-500"></div>
                 </div>
 
-                {/* Texte avec animation sur desktop uniquement */}
-                <div className="md:transform md:group-hover:-translate-y-2 md:transition-transform md:duration-500">
-                  <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-4 md:group-hover:text-orange-600 md:transition-colors md:duration-300">
+                {/* Texte simplifié pour enfants avec animation */}
+                <div className="animate-fade-in animation-delay-900">
+                  <h2 className="text-2xl md:text-3xl font-bold text-amber-600 mb-3">
                     Joue avec James !
                   </h2>
-                  <p className="text-gray-600 text-center mb-6 md:group-hover:text-gray-700">
-                    Découvre les mathématiques de façon amusante avec James le hibou, ton professeur préféré !
+                  <p className="text-lg text-gray-700 text-center mb-6">
+                    Résous des énigmes avec James le hibou !
                   </p>
                 </div>
 
-                {/* Bouton remplacé par Link tout en conservant le style */}
+                {/* Bouton plus grand et plus coloré */}
                 <Link
                   href="/games/james_le_hibou"
-                  className="bg-gradient-to-r from-orange-400 to-orange-500 text-white px-6 md:px-8 py-3 
-                           rounded-full font-semibold shadow-md relative z-10 overflow-hidden
-                           md:group-hover:shadow-xl md:transform md:group-hover:-translate-y-0.5 
-                           md:transition-all md:duration-300 inline-block"
+                  className="relative group bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xl
+                           px-8 py-4 rounded-full font-bold shadow-lg flex items-center space-x-3
+                           hover:shadow-amber-200/50 hover:shadow-xl transition-all duration-300
+                           animate-pulse-subtle animation-delay-300"
                 >
-                  <span className="relative z-10">Commencer l'apprentissage</span>
-                  <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-orange-500 to-orange-600 
-                               opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <span>Jouer maintenant !</span>
+                  <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
+                  </svg>
+                  <div className="absolute inset-0 -z-10 bg-gradient-to-r from-amber-400/0 via-white/30 to-amber-400/0
+                               opacity-0 group-hover:opacity-100 group-hover:animate-shimmer rounded-full"></div>
                 </Link>
               </div>
             </div>
@@ -147,93 +309,3 @@ export default function Games() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // cré moi une page de présentation de plusieur jeux avec leur lien
-// // et une image de présentation
-// // et un bouton pour y jouer
-
-// "use client";
-// import React from "react";
-// import Link from "next/link";
-// import Image from "next/image";
-// import sebi from "../../../public/sebi.png";
-// // import sebilaGazelleImage2 from "../../public/sebi_la_gazelle_2.png";
-// // import sebilaGazelleImage3 from "../../public/sebi_la_gazelle_3.png";
-// // import sebilaGazelleImage4 from "../../public/sebi_la_gazelle_4.png";
-// // import sebilaGazelleImage5 from "../../public/sebi_la_gazelle_5.png";
-
-
-
-// export default function GamesPage() {
-//     const games = [
-//         {
-//         name: "Sebi la Gazelle",
-//         description: "Un jeu de plateforme où vous devez aider Sebi à collecter des pièces et à éviter les obstacles.",
-//         image: sebi,
-//         link: "/games/sebi_la_gazelle",
-//         }
-//         // {
-//         // name: "Sebi la Gazelle 2",
-//         // description: "La suite du jeu Sebi la Gazelle avec de nouveaux niveaux et défis.",
-//         // image: sebilaGazelleImage2,
-//         // link: "/games/sebi_la_gazelle_2",
-//         // },
-//         // {
-//         // name: "Sebi la Gazelle 3",
-//         // description: "Encore plus d'aventures avec Sebi dans ce troisième opus.",
-//         // image: sebilaGazelleImage3,
-//         // link: "/games/sebi_la_gazelle_3",
-//         // },
-//         // {
-//         // name: "Sebi la Gazelle 4",
-//         // description: "Nouveaux ennemis et nouveaux défis dans Sebi la Gazelle 4.",
-//         // image: sebilaGazelleImage4,
-//         // link: "/games/sebi_la_gazelle_4",
-//         // },
-//         // {
-//         // name: "Sebi la Gazelle 5",
-//         // description: "Le dernier chapitre de l'aventure de Sebi.",
-//         // image: sebilaGazelleImage5,
-//         // link: "/games/sebi_la_gazelle_5",
-//         // },
-//     ];
-
-//     return (
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-//             {games.map((game) => (
-//                 <div key={game.name} className="border p-4 rounded">
-//                     <Image src={game.image} alt={game.name} className="w-full h-48 object-cover mb-2" />
-//                     <h3 className="text-lg font-semibold">{game.name}</h3>
-//                     <p className="text-sm text-gray-600">{game.description}</p>
-//                     <Link href={game.link} className="mt-2 inline-block bg-blue-500 text-white py-1 px-4 rounded">
-//                         Jouer
-//                     </Link>
-//                 </div>
-//             ))}
-//         </div>
-//     );
-// }
-// // export default function GamesPage() {

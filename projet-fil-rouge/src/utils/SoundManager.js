@@ -29,30 +29,30 @@ class SoundManager {
     try {
       const sound = new Audio(path);
       sound.preload = 'auto';
-      
+
       // Ajuster le volume en fonction du type d'appareil
       sound.volume = this.isMobile ? this.volume * 0.6 : this.volume;
-      
+
       this.sounds[key] = sound;
-      
+
       // Pour déboguer
       sound.addEventListener('canplaythrough', () => {
         console.log(`Son ${key} chargé avec succès`);
       });
-      
+
       sound.addEventListener('error', (error) => {
         console.warn(`Son ${key} non disponible, utilisation d'un son muet.`);
         // Remplacer par un son muet en cas d'erreur
         const dummySound = {
           play: () => Promise.resolve(),
-          pause: () => {},
-          addEventListener: () => {},
+          pause: () => { },
+          addEventListener: () => { },
           volume: 0,
           currentTime: 0
         };
         this.sounds[key] = dummySound;
       });
-      
+
       return true;
     } catch (error) {
       console.error(`Impossible de charger le son ${key}:`, error);
@@ -81,38 +81,38 @@ class SoundManager {
       this.backgroundMusic = new Audio(path);
       this.backgroundMusic.volume = this.musicVolume;
       this.backgroundMusic.loop = true; // La musique se joue en boucle
-      
+
       console.log(`Musique de fond chargée: ${path}`);
-      
+
       // Gestion des erreurs
       this.backgroundMusic.onerror = (e) => {
         console.error(`Erreur lors du chargement de la musique: ${path}`, e);
         this.backgroundMusic = null;
       };
-      
+
       return true;
-    } catch(e) {
+    } catch (e) {
       console.error(`Impossible de charger la musique: ${path}`, e);
       return false;
     }
   }
-  
+
   /**
    * Démarre la lecture de la musique de fond
    */
   playBackgroundMusic() {
     if (this.muted || !this.backgroundMusic) return;
-    
+
     // Promise pour gérer le démarrage de la musique (qui peut être bloqué par le navigateur)
     const playPromise = this.backgroundMusic.play();
-    
+
     if (playPromise !== undefined) {
       playPromise.catch(error => {
         console.warn("La lecture automatique de la musique a été empêchée par le navigateur", error);
       });
     }
   }
-  
+
   /**
    * Met en pause la musique de fond
    */
@@ -129,23 +129,28 @@ class SoundManager {
    */
   play(key, options = {}) {
     if (this.muted) return;
-    
+
     try {
       const sound = this.sounds[key];
       if (!sound) {
         console.warn(`Son ${key} non trouvé`);
         return;
       }
-      
+
       // Réinitialiser et préparer le son
       sound.pause();
       sound.currentTime = 0;
-      
+
       // Appliquer les options
       if (options.volume !== undefined) {
         sound.volume = options.volume * (this.isMobile ? 0.6 : 1);
       }
-      
+
+      // Ajouter cette ligne
+      if (options.loop) {
+        sound.loop = true;
+      }
+
       // Variation de hauteur (pitch) pour plus de variété
       if (options.pitchVariation) {
         const variation = (Math.random() * options.pitchVariation * 2) - options.pitchVariation;
@@ -153,7 +158,7 @@ class SoundManager {
       } else {
         sound.playbackRate = 1;
       }
-      
+
       // Jouer le son avec gestion des promesses
       const playPromise = sound.play();
       if (playPromise !== undefined) {
@@ -176,7 +181,7 @@ class SoundManager {
       sound.volume = this.isMobile ? this.volume * 0.6 : this.volume;
     }
   }
-  
+
   /**
    * Change le volume de la musique de fond
    * @param {number} volume - Volume entre 0 et 1

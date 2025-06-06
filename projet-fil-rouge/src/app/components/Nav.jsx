@@ -58,7 +58,7 @@ const Nav = () => {
 };
 
   return (
-    <nav className="fixed md:top-0 bottom-0 left-0 right-0 z-50">
+    <nav className="fixed md:inset-x-0 md:top-0 md:bottom-auto inset-x-0 bottom-0 z-50">
       {/* Version desktop */}
       <div className="hidden md:block bg-white/95 backdrop-blur-sm shadow-lg">
         <div className="max-w-screen-xl mx-auto px-6">
