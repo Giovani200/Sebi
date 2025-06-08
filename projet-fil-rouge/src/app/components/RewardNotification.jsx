@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
 
 export default function RewardNotification({ reward, onClose }) {
+  const { t } = useTranslation('common');
   const [animationState, setAnimationState] = useState('entering');
   
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function RewardNotification({ reward, onClose }) {
       <div className={`max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden transition-all duration-500 transform ${getAnimationClass()}`}>
         {/* En-tête coloré */}
         <div className="bg-gradient-to-r from-yellow-400 to-amber-500 p-4 text-center">
-          <h2 className="text-2xl font-bold text-white">🎉 Récompense Débloquée! 🎉</h2>
+          <h2 className="text-2xl font-bold text-white">{t('reward.title')}</h2>
         </div>
         
         {/* Image de récompense */}
@@ -45,7 +47,7 @@ export default function RewardNotification({ reward, onClose }) {
               <div className={`relative w-48 h-48 ${animationState === 'active' ? 'animate-pulse' : ''}`}>
                 <Image 
                   src={reward.imageUrl}
-                  alt="Récompense"
+                  alt={t('reward.title')}
                   fill
                   className="object-contain"
                 />
@@ -57,20 +59,20 @@ export default function RewardNotification({ reward, onClose }) {
         {/* Description */}
         <div className="p-6 text-center">
           <h3 className="text-xl font-bold text-gray-800">
-            Niveau {reward.milestone} atteint!
+            {t('reward.levelReached', { level: reward.milestone })}
           </h3>
           <p className="mt-2 text-gray-600">
-            Continue à progresser pour débloquer d'autres récompenses!
+            {t('reward.continueProgress')}
           </p>
           
           <button 
-            className="mt-4 px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-full font-bold shadow-md hover:from-green-700 hover:to-emerald-800 transition-colors"
+            className="mt-4 px-6 py-2 bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-full font-bold shadow-md hover:from-green-700 hover:to-emerald-800 transition-colors pointer-events-auto"
             onClick={() => {
               setAnimationState('exiting');
               setTimeout(() => onClose && onClose(), 500);
             }}
           >
-            Super!
+            {t('reward.awesome')}
           </button>
         </div>
       </div>

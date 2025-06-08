@@ -38,7 +38,7 @@ export const POST = async (req) => {
 
     // Création utilisateur
 
-    const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${firstName}-${lastName}`;
+const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${firstName}-${lastName}&backgroundColor=ffdfbf,ffd5dc,d1d4f9,c0aede,b6e3f4`;
 
     const newUser = await User.create({
         firstName,

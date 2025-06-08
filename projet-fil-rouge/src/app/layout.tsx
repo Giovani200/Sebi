@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 import Notification from "./components/Notification";
+import SebiGuide from './components/SebiGuide';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <Nav />
+        <SebiGuide />
         <Notification />
         <main className="flex-grow w-full">
           {children}

@@ -31,7 +31,7 @@ function Reveal({ children, className = '', animation = 'animate-fadeInUp', dela
 
 export default function Home() {
   const [isSoundPlaying, setIsSoundPlaying] = useState(true);
-  
+
   // Gérer le son d'ambiance
   useEffect(() => {
     // Charger les sons
@@ -39,7 +39,7 @@ export default function Home() {
       'homepage': '/music/kids-playground.mp3',
       'click': '/music/click.mp3'
     });
-    
+
     // Nettoyage
     return () => {
       const ambianceSound = soundManager.sounds['homepage'];
@@ -49,7 +49,7 @@ export default function Home() {
       }
     };
   }, []);
-  
+
   // Fonction pour activer/désactiver le son
   const toggleSound = () => {
     if (isSoundPlaying) {
@@ -62,7 +62,7 @@ export default function Home() {
       soundManager.play('homepage', { volume: 0.2, loop: true });
       setIsSoundPlaying(true);
     }
-    
+
     soundManager.play('click', { volume: 0.5 });
   };
 
@@ -70,7 +70,7 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-orange-50 to-amber-100">
       {/* Bouton de contrôle du son */}
-      <button 
+      <button
         onClick={toggleSound}
         className="fixed top-24 right-6 z-10 bg-white/80 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
         aria-label={isSoundPlaying ? "Désactiver le son" : "Activer le son"}
@@ -93,7 +93,7 @@ export default function Home() {
         <div className="cloud absolute top-[10%] left-[20%] w-24 h-16 bg-white rounded-full"></div>
         <div className="cloud absolute top-[15%] left-[60%] w-32 h-20 bg-white rounded-full"></div>
         <div className="cloud absolute top-[30%] left-[40%] w-28 h-18 bg-white rounded-full"></div>
-        
+
         {/* Étoiles et formes */}
         <div className="floating-star absolute left-[15%] top-[30%] text-4xl">✨</div>
         <div className="floating-star absolute left-[75%] top-[25%] text-3xl">⭐</div>
@@ -104,27 +104,30 @@ export default function Home() {
       <div className="relative min-h-screen w-full flex flex-col items-center justify-center py-20 px-4">
         <Reveal animation="animate-fadeInUp" delay={0}>
           <h1 className="text-5xl md:text-6xl font-bold text-center text-gray-800 mb-6">
-            Bienvenue aux<br/>
+            Bienvenue aux<br />
             <span className="text-orange-600">Petits Aventuriers</span>
           </h1>
         </Reveal>
-        
+
         {/* Sebi avec bulle de dialogue toujours visible */}
         <Reveal animation="animate-fadeInUp" delay={200}>
           <div className="relative max-w-sm mx-auto mb-12">
-            {/* Bulle de dialogue toujours visible */}
+            {/* Bulle de dialogue plus élaborée */}
             <div className="bg-white rounded-2xl p-6 border-4 border-orange-200 shadow-lg mb-6 relative">
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-6 h-6 bg-white border-r-4 border-b-4 border-orange-200"></div>
               <h2 className="text-center text-2xl font-bold text-orange-600 mb-2">
                 Salut petit aventurier ! 👋
               </h2>
               <p className="text-center text-gray-700">
-                Je m'appelle Sebi ! Viens jouer avec moi et mes amis !
+                Je m'appelle Sebi ! Je serai ton guide tout au long de ton aventure !
+              </p>
+              <p className="text-center text-orange-500 font-medium mt-2">
+                Clique sur moi en bas à droite quand tu as besoin d'aide 😉 !
               </p>
             </div>
-            
-            {/* Image de Sebi qui rebondit légèrement */}
-            <div className="w-60 h-60 mx-auto relative animate-bounce-slow">
+
+            {/* Image de Sebi plus grande sur la page d'accueil */}
+            <div className="w-52 h-52 mx-auto relative animate-bounce-slow">
               <Image
                 src="/images/SEBI.png"
                 alt="Sebi la gazelle"
@@ -134,7 +137,7 @@ export default function Home() {
             </div>
           </div>
         </Reveal>
-        
+
         {/* Call to action */}
         <Reveal animation="animate-fadeInUp" delay={400}>
           <Link
@@ -161,7 +164,7 @@ export default function Home() {
             Tes compagnons d'aventure
           </h2>
         </Reveal>
-        
+
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Carte Sebi */}
           <Reveal animation="animate-fadeInUp" delay={300}>
@@ -169,7 +172,7 @@ export default function Home() {
                            transform transition-all duration-500 hover:-translate-y-3 hover:shadow-xl">
               <div className="p-6 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-100/50 to-amber-100/50"></div>
-                
+
                 <div className="flex flex-col items-center relative z-10">
                   <div className="relative w-40 h-40 mb-6 transform hover:scale-110 transition-all duration-300 hover:animate-bounce">
                     <div className="absolute -inset-4 bg-orange-300/20 rounded-full blur-xl"></div>
@@ -186,7 +189,7 @@ export default function Home() {
                       Sebi la gazelle
                     </h2>
                     <p className="text-lg text-gray-700 text-center mb-6">
-                      Salut ! Je suis Sebi, une gazelle aventurière qui adore explorer la savane. 
+                      Salut ! Je suis Sebi, une gazelle aventurière qui adore explorer la savane.
                       Je suis rapide comme le vent !
                     </p>
                   </div>
@@ -206,14 +209,14 @@ export default function Home() {
               </div>
             </div>
           </Reveal>
-          
+
           {/* Carte James */}
           <Reveal animation="animate-fadeInUp" delay={450}>
             <div className="bg-white rounded-3xl overflow-hidden shadow-lg border-4 border-amber-200
                            transform transition-all duration-500 hover:-translate-y-3 hover:shadow-xl">
               <div className="p-6 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-50/80 to-orange-100/50"></div>
-                
+
                 <div className="flex flex-col items-center relative z-10">
                   <div className="relative w-40 h-40 mb-6 transform hover:scale-110 transition-all duration-300 hover:rotate-3">
                     <div className="absolute -inset-4 bg-amber-300/20 rounded-full blur-xl"></div>
@@ -230,7 +233,7 @@ export default function Home() {
                       James le hibou
                     </h2>
                     <p className="text-lg text-gray-700 text-center mb-6">
-                      Bonjour ! Je suis James, un hibou qui adore les mathématiques. 
+                      Bonjour ! Je suis James, un hibou qui adore les mathématiques.
                       Avec moi, tu découvriras que les maths peuvent être amusantes !
                     </p>
                   </div>

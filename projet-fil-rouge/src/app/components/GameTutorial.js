@@ -75,18 +75,26 @@ export default function GameTutorial({ onClose }) {
   };
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-900/80 z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full relative">
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fdf2dd]/95 z-50 p-4 overflow-auto">
+      <div className="bg-white/90 rounded-xl shadow-md p-6 max-w-lg w-full relative border border-orange-200 transform -rotate-1">
         {/* En-tête */}
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-emerald-700 mb-4">
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-orange-600 mb-4">
           Bienvenue dans Sebi Runner !
         </h2>
+        
+        {/* Bouton de fermeture */}
+        <button 
+          onClick={onClose}
+          className="absolute top-2 right-2 text-orange-400 hover:text-orange-600 bg-orange-100/50 hover:bg-orange-100 rounded-full w-8 h-8 flex items-center justify-center"
+        >
+          ✕
+        </button>
 
         {/* Sebi qui parle */}
-        <div className={`relative w-32 h-32 md:w-40 md:h-40 ${animationClass}`}>
-          <div className="animate-pulse-subtle">
+        <div className={`relative flex flex-col md:flex-row items-center gap-6 my-4 ${animationClass}`}>
+          <div className="animate-bounce-slow w-32 h-32 md:w-40 md:h-40">
             <Image
-              src="/sebi.png"
+              src="/images/SEBI.png"
               alt="Sebi"
               width={160}
               height={160}
@@ -95,9 +103,9 @@ export default function GameTutorial({ onClose }) {
           </div>
 
           {/* Bulle de dialogue */}
-          <div className="bg-yellow-100 p-4 rounded-2xl border-2 border-yellow-300 relative flex-1">
-            <div className="absolute left-0 top-1/2 -translate-x-4 -translate-y-1/2 w-4 h-4 bg-yellow-100 border-l-2 border-b-2 border-yellow-300 transform rotate-45 hidden md:block"></div>
-            <p className="text-lg">
+          <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 relative flex-1">
+            <div className="absolute left-0 top-1/2 -translate-x-4 -translate-y-1/2 w-4 h-4 bg-amber-50 border-l border-b border-amber-200 transform rotate-45 hidden md:block"></div>
+            <p className="text-lg text-orange-800">
               <span className="text-2xl mr-2">{dialogueEmojis[step - 1]}</span>
               {dialogues[step - 1]}
             </p>
@@ -105,20 +113,22 @@ export default function GameTutorial({ onClose }) {
         </div>
 
         {/* Indicateurs d'étape */}
-        <div className="flex justify-center mt-4 mb-2">
+        <div className="flex justify-center mt-6 mb-4">
           {dialogues.map((_, index) => (
             <div
               key={index}
-              className={`w-3 h-3 mx-1 rounded-full ${index < step ? 'bg-green-500' : 'bg-gray-300'}`}
+              className={`w-3 h-3 mx-1 rounded-full transition-colors duration-300 ${
+                index < step ? 'bg-orange-500' : 'bg-amber-200'
+              }`}
             />
           ))}
         </div>
 
         {/* Boutons de navigation */}
-        <div className="flex justify-center space-x-4">
+        <div className="flex justify-center space-x-4 mt-6">
           {!isReady ? (
             <button
-              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-full transition-transform hover:scale-105 flex items-center"
+              className="bg-gradient-to-r from-orange-300 to-amber-400 hover:from-orange-400 hover:to-amber-500 text-orange-800 font-bold py-2 px-6 rounded-full transition-all duration-300 hover:scale-105 flex items-center shadow-sm"
               onClick={nextStep}
             >
               <span>Suivant</span>
@@ -128,13 +138,17 @@ export default function GameTutorial({ onClose }) {
             </button>
           ) : (
             <button
-              className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-lg transition-all duration-300 hover:scale-110"
+              className="bg-gradient-to-r from-orange-300 to-amber-400 hover:from-orange-400 hover:to-amber-500 text-orange-800 font-bold py-3 px-8 rounded-full text-lg transition-all duration-300 hover:scale-110 shadow-sm"
               onClick={startGame}
             >
               Allons-y !
             </button>
           )}
         </div>
+
+        {/* Étoiles décoratives */}
+        <div className="absolute -top-1 -right-2 text-amber-300 text-xl animate-float-slow">✨</div>
+        <div className="absolute -bottom-1 -left-2 text-amber-300 text-xl animate-float-slow animation-delay-500">⭐</div>
       </div>
     </div>
   );

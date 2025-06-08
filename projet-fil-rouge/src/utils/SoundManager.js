@@ -40,7 +40,7 @@ class SoundManager {
         console.log(`Son ${key} chargé avec succès`);
       });
 
-      sound.addEventListener('error', (error) => {
+      sound.addEventListener('error', () => {
         console.warn(`Son ${key} non disponible, utilisation d'un son muet.`);
         // Remplacer par un son muet en cas d'erreur
         const dummySound = {
@@ -143,7 +143,7 @@ class SoundManager {
 
       // Appliquer les options
       if (options.volume !== undefined) {
-        sound.volume = options.volume * (this.isMobile ? 0.6 : 1);
+        sound.volume = Math.min(1, Math.max(0, options.volume)) * (this.isMobile ? 0.6 : 1);
       }
 
       // Ajouter cette ligne

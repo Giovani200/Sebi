@@ -119,9 +119,8 @@ export default function useGame(canvasRef) {
 
   // Charger le high score depuis l'API
   useEffect(() => {
-    // Charger le high score local comme fallback
-    const localHighScore = Number(localStorage.getItem("sebi-highscore") || 0);
-    setHighScore(localHighScore);
+    // Initialiser le highscore à 0 par défaut
+    setHighScore(0);
 
     // Récupérer le highscore depuis l'API
     fetch("/api/scores?gameSlug=sebi-run", {
@@ -130,15 +129,11 @@ export default function useGame(canvasRef) {
       .then(res => res.json())
       .then(data => {
         console.log("Highscore reçu de l'API:", data);
-        // Si le score du serveur est supérieur, on le prend
-        if (data.highscore > localHighScore) {
-          setHighScore(data.highscore);
-          localStorage.setItem("sebi-highscore", data.highscore);
-        }
+        // Utiliser directement le score du serveur
+        setHighScore(data.highscore || 0);
       })
       .catch(err => {
         console.error("Erreur lors de la récupération du highscore:", err);
-        // On garde le highscore local en cas d'erreur
       });
 
     // Vérifier si le tutoriel a déjà été vu
@@ -619,8 +614,7 @@ export default function useGame(canvasRef) {
       // Vérifier et mettre à jour le high score si nécessaire
       if (state.current.currentDistance > highScore) {
         setHighScore(state.current.currentDistance);
-        localStorage.setItem("sebi-highscore", state.current.currentDistance);
-        // Ne pas envoyer le score ici pour éviter les requêtes multiples
+        // Supprimé: localStorage.setItem("sebi-highscore", state.current.currentDistance);
       }
 
       // Activer le mode nuit périodiquement
@@ -672,7 +666,7 @@ export default function useGame(canvasRef) {
                 // Mettre à jour le highscore si nécessaire
                 if (data.highscore) {
                   setHighScore(data.highscore);
-                  localStorage.setItem("sebi-highscore", data.highscore);
+                  // Supprimé: localStorage.setItem("sebi-highscore", data.highscore);
                 }
 
                 // Afficher la récompense si une a été débloquée
@@ -837,7 +831,7 @@ export default function useGame(canvasRef) {
 
     // Réinitialiser le highscore local
     setHighScore(0);
-    localStorage.setItem("sebi-highscore", "0");
+    // Supprimé: localStorage.setItem("sebi-highscore", "0");
 
     // Réinitialiser le highscore en base de données
     fetch("/api/scores/reset", {

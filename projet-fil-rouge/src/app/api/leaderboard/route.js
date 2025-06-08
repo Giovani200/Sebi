@@ -1,99 +1,221 @@
-import connectDB from "@/lib/db";
-import Score from '@/app/models/Score.model';
-import jwt from 'jsonwebtoken';
 import { NextResponse } from 'next/server';
+import connectDB from '@/lib/db';
+import Score from '@/app/models/Score.model';
+// import User from '@/app/models/User.model';
 
-
-export async function GET(req) {
+export async function GET() {
+  try {
     await connectDB();
 
-    const token = req.cookies?.get('token')?.value;
-
-    if (!token) {
-        return NextResponse.json({ message: "Non connecté" }, { status: 401 });
-    }
-
-    let userId;
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        userId = decoded.userId;
-    } catch (err) {
-        return NextResponse.json({ message: "Token invalide", error: err.message }, { status: 403 });
-    }
-
-    // top score
-    /**
-     * @swagger
-     * aggregate : c'est une méthode de mongoose qui permet de faire des requêtes d'agrégation sur la base de données
-     */
-    const bestByGame = await Score.aggregate([
-        {
-            $group: {
-                _id: {
-                    user: "$userId",
-                    game: "$gameSlug",
-                },
-                bestScore: {
-                    $max: "$score"
-                },
-            },
-        },
-
-        {
-            $lookup: {
-                from: "users",
-                localField: "_id.user",
-                foreignField: "_id",
-                as: "user",
-            },
-        },
-        { $unwind: "$user" },
-        {
-            $project: {
-                game: "$_id.game",
-                bestScore: 1,
-                "user.firstName": 1,
-                "user.avatar": 1,
-            },
-        },
-
-        {
-            $sort: {
-                "bestScore": -1
-            },
-        },
+    // Récupération des meilleurs scores par jeu
+    const bestByGameSebi = await Score.aggregate([
+      {
+        $group: {
+          _id: {
+            game: "$gameSlug",
+            userId: "$userId"
+          },
+          bestScore: { $max: "$score" }
+        }
+      },
+      {
+        $sort: { bestScore: -1 }
+      },
+      {
+        $group: {
+          _id: "$_id.game",
+          user: { $first: "$_id.userId" },
+          bestScore: { $first: "$bestScore" }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          game: "$_id",
+          user: {
+            _id: "$user._id",
+            firstName: "$user.firstName",
+            lastName: "$user.lastName",
+            avatar: "$user.avatar"
+          },
+          bestScore: 1,
+          _id: 0
+        }
+      }
     ]);
 
-    // Top 3 des meilleurs joueurs tous jeux confondus
-    const top3 = await Score.aggregate([
-  {
-    $group: {
-      _id: "$userId",
-      totalScore: { $sum: "$score" },
-    },
-  },
-  {
-    $lookup: {
-      from: "users",
-      localField: "_id",
-      foreignField: "_id",
-      as: "user",
-    },
-  },
-  { $unwind: "$user" },
-  {
-    $project: {
-      totalScore: 1,
-      "user.firstName": 1,
-    },
-  },
-  {
-    $sort: { totalScore: -1 },
-  },
-  {
-    $limit: 3,
-  },
-]);
+    // Top 3 pour le jeu Sebi
+    const topSebi = await Score.aggregate([
+      { $match: { gameSlug: "sebi-run" } }, // Ajustez selon le slug réel du jeu Sebi
+      {
+        $group: {
+          _id: "$userId",
+          bestScore: { $max: "$score" },
+          totalScore: { $sum: "$score" },
+          gamesPlayed: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          user: {
+            _id: "$user._id",
+            firstName: "$user.firstName",
+            lastName: "$user.lastName",
+            avatar: "$user.avatar"
+          },
+          bestScore: 1,
+          totalScore: 1,
+          gamesPlayed: 1
+        }
+      },
+      { $sort: { bestScore: -1 } },
+      { $limit: 3 }
+    ]);
 
-    return NextResponse.json({ bestByGame, top3 }, { status: 200 });
+    // Top 3 pour le jeu James (quand il sera disponible)
+    const topJames = await Score.aggregate([
+      { $match: { gameSlug: "james-hibou" } }, // Ajustez selon le slug réel du jeu James
+      {
+        $group: {
+          _id: "$userId",
+          bestScore: { $max: "$score" },
+          totalScore: { $sum: "$score" },
+          gamesPlayed: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          user: {
+            _id: "$user._id",
+            firstName: "$user.firstName",
+            lastName: "$user.lastName",
+            avatar: "$user.avatar"
+          },
+          bestScore: 1,
+          totalScore: 1,
+          gamesPlayed: 1
+        }
+      },
+      { $sort: { bestScore: -1 } },
+      { $limit: 3 }
+    ]);
+
+    // Top 3 global (addition des meilleurs scores de chaque jeu)
+    const topGlobal = await Score.aggregate([
+      // Trouver le meilleur score par joueur et par jeu
+      {
+        $group: {
+          _id: { userId: "$userId", gameSlug: "$gameSlug" },
+          bestScore: { $max: "$score" }
+        }
+      },
+      // Regrouper par joueur et additionner les meilleurs scores
+      {
+        $group: {
+          _id: "$_id.userId",
+          totalScore: { $sum: "$bestScore" },
+          gamesPlayed: { $sum: 1 }
+        }
+      },
+      // Récupérer les infos utilisateur
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          totalScore: 1,
+          gamesPlayed: 1,
+          user: {
+            _id: "$user._id",
+            firstName: "$user.firstName",
+            lastName: "$user.lastName",
+            avatar: "$user.avatar"
+          }
+        }
+      },
+      { $sort: { totalScore: -1 } },
+      { $limit: 3 }
+    ]);
+
+    // Liste de tous les joueurs Sebi avec leur score
+    const sebiPlayers = await Score.aggregate([
+      { $match: { gameSlug: "sebi-run" } },
+      {
+        $group: {
+          _id: "$userId",
+          totalScore: { $sum: "$score" },
+          gamesPlayed: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          user: {
+            _id: "$user._id",
+            firstName: "$user.firstName",
+            lastName: "$user.lastName",
+            avatar: "$user.avatar"
+          },
+          totalScore: 1,
+          gamesPlayed: 1
+        }
+      },
+      { $sort: { totalScore: -1 } }
+    ]);
+
+    return NextResponse.json({
+      bestByGameSebi,
+      topSebi,
+      topJames,
+      topGlobal,
+      sebiPlayers
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error("Erreur de récupération du leaderboard:", error);
+    return NextResponse.json(
+      { message: "Erreur lors de la récupération du classement" },
+      { status: 500 }
+    );
+  }
 }

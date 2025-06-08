@@ -3,21 +3,22 @@ import { useRef, useEffect, useState } from "react";
 import useGame from "../../hooks/useGame";
 import GameTutorial from "./GameTutorial";
 import RewardNotification from "./RewardNotification";
+import Image from "next/image";
 
 export default function GameCanvas() {
   // Référence au canvas
   const canvasRef = useRef(null);
 
-  // Hook principal du jeu : une seule déclaration !
+  // Hook principal du jeu
   const {
-  score, highScore, isGameOver, isGameReady,
-  jump, reset, nightMode, showTutorial, closeTutorial, rewardUnlocked,
-  resetHighScore  // Ajout de cette nouvelle fonction
-} = useGame(canvasRef);
+    score, highScore, isGameOver, isGameReady,
+    jump, reset, nightMode, showTutorial, closeTutorial, rewardUnlocked,
+    resetHighScore
+  } = useGame(canvasRef);
 
   // State pour l'interface du jeu
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
-  // const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [animateButton, setAnimateButton] = useState(false);
 
   useEffect(() => {
     function updateSize() {
@@ -55,6 +56,8 @@ export default function GameCanvas() {
           document.activeElement.tagName !== "TEXTAREA") {
           e.preventDefault();
           jump();
+          setAnimateButton(true);
+          setTimeout(() => setAnimateButton(false), 300);
         }
       }
     };
@@ -65,94 +68,201 @@ export default function GameCanvas() {
     };
   }, [jump, isGameReady, isGameOver]);
 
+  const handleJump = () => {
+    jump();
+    setAnimateButton(true);
+    setTimeout(() => setAnimateButton(false), 300);
+  };
+
   return (
-    <div className="flex flex-col items-center w-full h-screen max-w-full">
-      <div className="relative w-full h-full flex-1 flex items-center justify-center">
+    <div className="flex flex-col items-center w-full h-screen max-w-full pt-23">
+      <div className="relative w-full h-full flex-1 flex items-center justify-center overflow-hidden">
+        {/* Fond d'écran décoratif doux reprenant le style du site */}
+        <div className="absolute inset-0 bg-[#fdf2dd] z-0 pointer-events-none">
+          {/* Éléments décoratifs subtils */}
+          <div className="absolute top-[10%] left-[20%] w-24 h-24 bg-orange-100/30 rounded-full"></div>
+          <div className="absolute bottom-[20%] right-[10%] w-32 h-32 bg-yellow-100/30 rounded-full"></div>
+          <div className="absolute top-[30%] right-[30%] text-4xl animate-float-slow opacity-50">✨</div>
+          <div className="absolute bottom-[40%] left-[15%] text-4xl animate-float-slow animation-delay-500 opacity-50">⭐</div>
+          
+          {/* Étoiles supplémentaires comme dans le footer */}
+          <div className="absolute top-[15%] right-[15%] text-xl animate-float-slow opacity-40">⭐</div>
+          <div className="absolute bottom-[15%] left-[25%] text-xl animate-float-slow animation-delay-300 opacity-40">✨</div>
+          <div className="absolute top-[60%] right-[45%] text-2xl animate-float-slow animation-delay-700 opacity-30">⭐</div>
+        </div>
+
+        {/* Canvas de jeu avec couleurs douces */}
         <canvas
           ref={canvasRef}
           width={dimensions.width}
           height={dimensions.height}
-          className={`w-full h-full border-0 bg-gradient-to-b from-green-800 to-emerald-900 shadow-2xl transition-colors duration-500 rounded-none`}
+          className={`w-full h-full border-0 ${nightMode
+            ? 'bg-gradient-to-b from-indigo-800/70 to-purple-800/70'
+            : 'bg-gradient-to-b from-orange-100/80 to-amber-200/80'} 
+            shadow-md transition-colors duration-500 rounded-2xl z-10`}
           tabIndex={0}
           onKeyDown={e => {
             if (e.code === "Space") {
-              jump();
+              handleJump();
             }
           }}
           onClick={(e) => {
-            jump();
+            handleJump();
             e.currentTarget.focus();
           }}
           onTouchStart={(e) => {
-            jump();
+            handleJump();
             e.currentTarget.focus();
           }}
           style={{ outline: 'none' }}
         />
+
+        {/* Écran de démarrage */}
         {!isGameReady && !isGameOver && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white">
-            <div className="text-4xl font-extrabold mb-6 drop-shadow-lg">Sebi Runner</div>
-            <div className="text-xl mb-8 max-w-md text-center">
-              Aidez Sebi à éviter les obstacles en sautant au bon moment !
+         <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fdf2dd]/95 text-gray-800 rounded-2xl z-20">
+            <div className="relative w-32 h-32 mb-4 animate-bounce-slow">
+              <Image
+                src="/images/SEBI.png"
+                alt="Sebi la gazelle"
+                fill
+                className="object-contain"
+              />
             </div>
+
+            <div className="text-5xl font-extrabold mb-6 drop-shadow-md text-orange-600">
+              Sebi Runner
+            </div>
+
+            <div className="bg-white/90 rounded-xl p-6 max-w-md mb-8 transform -rotate-1 shadow-sm border border-orange-200">
+              <div className="text-2xl mb-4 text-center font-bold text-orange-500">
+                Aide Sebi à sauter par-dessus les obstacles !
+              </div>
+              <div className="flex items-center justify-center space-x-8 text-lg text-gray-700 mt-6">
+                <div className="flex flex-col items-center">
+                  <span className="text-3xl mb-2">⬆️</span>
+                  <span>Sauter</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-3xl mb-2">⭐</span>
+                  <span>Collecter</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-3xl mb-2">🌵</span>
+                  <span>Éviter</span>
+                </div>
+              </div>
+            </div>
+
             <button
-              className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-900 px-8 py-4 rounded-full font-bold text-xl shadow-lg transition-transform hover:scale-105"
+              className="bg-gradient-to-r from-orange-200 to-amber-300 hover:from-orange-300 hover:to-amber-400 
+                         px-10 py-5 rounded-full font-bold text-2xl shadow-sm transition-all duration-300 
+                         hover:scale-105 border border-orange-200 text-orange-800"
               onClick={() => {
                 setTimeout(() => {
                   reset();
                 }, 100);
               }}
             >
-              Commencer
+              <span className="flex items-center">
+                <span className="mr-2">🎮</span>
+                Commencer l&apos;aventure !
+              </span>
             </button>
-            <div className="text-sm mt-8 text-gray-300">
-              Appuyez sur <span className="font-bold">Espace</span> ou <span className="font-bold">Cliquez</span> pour sauter
+
+            <div className="text-lg mt-8 text-gray-700 font-medium bg-white/60 px-6 py-3 rounded-full shadow-sm">
+              Appuie sur <span className="font-bold">Espace</span> ou <span className="font-bold">Clique</span> pour sauter
             </div>
           </div>
         )}
+
+        {/* Écran de Game Over */}
         {isGameOver && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-white">
-            <div className="text-3xl font-extrabold mb-2 drop-shadow-lg">Game Over</div>
-            <div className="text-xl mb-4">Score: <span className="font-bold">{score}</span></div>
-            {score >= highScore && score > 0 && (
-              <div className="text-xl text-yellow-300 mb-4 animate-pulse">🏆 Nouveau Record !</div>
-            )}
-            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fdf2dd]/95 text-gray-800 rounded-2xl z-20">
+            <div className="text-4xl font-extrabold mb-6 drop-shadow-md text-orange-600">Partie terminée</div>
+
+            <div className="bg-white/90 rounded-xl p-6 mb-8 transform rotate-1 w-80 shadow-sm border border-orange-200">
+              <div className="text-2xl text-center font-bold text-orange-500 mb-2">Ton score</div>
+              <div className="text-5xl text-center font-black text-amber-500 mb-2">{score}</div>
+
+              {score >= highScore && score > 0 && (
+                <div className="bg-yellow-50 rounded-lg p-3 my-4 border border-yellow-200">
+                  <div className="text-xl text-yellow-600 text-center font-bold flex items-center justify-center">
+                    <span className="text-2xl mr-2">🏆</span> Nouveau Record !
+                  </div>
+                </div>
+              )}
+
+              <div className="text-lg text-center text-gray-600 mt-2">
+                Ton meilleur score: <span className="font-bold">{highScore}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
               <button
-                className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-900 px-6 py-3 rounded-full font-bold text-lg shadow-lg"
+                className="bg-gradient-to-r from-orange-200 to-amber-300 hover:from-orange-300 hover:to-amber-400 
+                           px-8 py-4 rounded-full font-bold text-xl shadow-sm transition-all duration-300 
+                           hover:scale-105 border border-orange-200 flex items-center text-orange-800"
                 onClick={() => {
                   reset();
                 }}
               >
+                <span className="mr-2">🔄</span>
                 Rejouer
               </button>
 
-              {/* Nouveau bouton pour réinitialiser le highscore */}
               <button
-                className="bg-gradient-to-r from-red-500 to-red-700 hover:from-red-600 hover:to-red-800 px-6 py-3 rounded-full font-bold text-lg shadow-lg flex items-center justify-center"
+                className="bg-gradient-to-r from-red-100 to-red-200 hover:from-red-200 hover:to-red-300
+                           px-8 py-4 rounded-full font-bold text-xl shadow-sm transition-all duration-300 
+                           hover:scale-105 border border-red-200 flex items-center text-red-700"
                 onClick={resetHighScore}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
+                <span className="mr-2">🗑️</span>
                 Effacer record
               </button>
             </div>
+
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-lg text-gray-700">
+              N&apos;abandonne pas, Sebi a besoin de toi !
+            </div>
           </div>
         )}
+
+        {/* Tutoriel */}
         {showTutorial && <GameTutorial onClose={closeTutorial} />}
+
+        {/* Compteur de score en haut */}
+        <div className="flex justify-between w-full px-8 text-xl font-bold text-gray-800 drop-shadow-md absolute top-4 left-0 z-30">
+          <div className="bg-orange-100/80 px-6 py-2 rounded-full border border-orange-200/50 shadow-sm">
+            <span>Score: <span className="font-extrabold">{score}</span></span>
+          </div>
+
+          <div className="bg-amber-100/80 px-6 py-2 rounded-full border border-amber-200/50 shadow-sm">
+            <span>Meilleur: <span className="font-extrabold">{highScore}</span></span>
+          </div>
+
+          {nightMode && (
+            <div className="bg-indigo-100/80 px-6 py-2 rounded-full border border-indigo-200/50 shadow-sm animate-pulse">
+              <span className="flex items-center text-indigo-700"><span className="mr-2">🌙</span> Mode nuit</span>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex justify-between w-full px-8 mt-6 text-xl font-mono text-white drop-shadow-lg absolute top-4 left-0">
-        <span>Score: <span className="font-extrabold">{score}</span></span>
-        <span>Meilleur: <span className="font-extrabold">{highScore}</span></span>
-        {nightMode && <span className="ml-2 text-blue-200 animate-pulse">🌙 Nuit</span>}
-      </div>
+
+      {/* Bouton de saut mobile */}
       <button
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 sm:hidden bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-900 px-6 py-3 rounded-full font-bold text-lg text-white shadow-lg"
-        onClick={jump}
+        className={`fixed bottom-12 left-1/2 -translate-x-1/2 sm:hidden 
+                   bg-gradient-to-r from-orange-200 to-amber-300 hover:from-orange-300 hover:to-amber-400 
+                   px-10 py-5 rounded-full font-bold text-xl text-orange-800 shadow-sm border border-orange-200
+                   transition-transform ${animateButton ? 'scale-90' : 'scale-100'}`}
+        onClick={handleJump}
       >
-        Sauter
+        <span className="flex items-center">
+          <span className="mr-2">⬆️</span>
+          Sauter
+        </span>
       </button>
+
+      {/* Notification de récompense */}
       {rewardUnlocked && (
         <RewardNotification
           reward={rewardUnlocked}
