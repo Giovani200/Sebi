@@ -4,10 +4,12 @@ import useGame from "../../hooks/useGame";
 import GameTutorial from "./GameTutorial";
 import RewardNotification from "./RewardNotification";
 import Image from "next/image";
+import { useTranslation } from 'react-i18next';
 
 export default function GameCanvas() {
   // Référence au canvas
   const canvasRef = useRef(null);
+  const { t } = useTranslation();
 
   // Hook principal du jeu
   const {
@@ -122,7 +124,7 @@ export default function GameCanvas() {
          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fdf2dd]/95 text-gray-800 rounded-2xl z-20">
             <div className="relative w-32 h-32 mb-4 animate-bounce-slow">
               <Image
-                src="/images/SEBI.png"
+                src="/images/sebi.webp"
                 alt="Sebi la gazelle"
                 fill
                 className="object-contain"
@@ -130,25 +132,25 @@ export default function GameCanvas() {
             </div>
 
             <div className="text-5xl font-extrabold mb-6 drop-shadow-md text-orange-600">
-              Sebi Runner
+              {t('game.title')}
             </div>
 
             <div className="bg-white/90 rounded-xl p-6 max-w-md mb-8 transform -rotate-1 shadow-sm border border-orange-200">
               <div className="text-2xl mb-4 text-center font-bold text-orange-500">
-                Aide Sebi à sauter par-dessus les obstacles !
+                {t('game.instructions')}
               </div>
               <div className="flex items-center justify-center space-x-8 text-lg text-gray-700 mt-6">
                 <div className="flex flex-col items-center">
                   <span className="text-3xl mb-2">⬆️</span>
-                  <span>Sauter</span>
+                  <span>{t('game.actions.jump')}</span>
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="text-3xl mb-2">⭐</span>
-                  <span>Collecter</span>
+                  <span>{t('game.actions.collect')}</span>
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="text-3xl mb-2">🌵</span>
-                  <span>Éviter</span>
+                  <span>{t('game.actions.avoid')}</span>
                 </div>
               </div>
             </div>
@@ -165,12 +167,12 @@ export default function GameCanvas() {
             >
               <span className="flex items-center">
                 <span className="mr-2">🎮</span>
-                Commencer l&apos;aventure !
+                {t('game.startButton')}
               </span>
             </button>
 
             <div className="text-lg mt-8 text-gray-700 font-medium bg-white/60 px-6 py-3 rounded-full shadow-sm">
-              Appuie sur <span className="font-bold">Espace</span> ou <span className="font-bold">Clique</span> pour sauter
+              {t('game.controls')}
             </div>
           </div>
         )}
@@ -178,22 +180,22 @@ export default function GameCanvas() {
         {/* Écran de Game Over */}
         {isGameOver && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fdf2dd]/95 text-gray-800 rounded-2xl z-20">
-            <div className="text-4xl font-extrabold mb-6 drop-shadow-md text-orange-600">Partie terminée</div>
+            <div className="text-4xl font-extrabold mb-6 drop-shadow-md text-orange-600">{t('game.gameOver')}</div>
 
             <div className="bg-white/90 rounded-xl p-6 mb-8 transform rotate-1 w-80 shadow-sm border border-orange-200">
-              <div className="text-2xl text-center font-bold text-orange-500 mb-2">Ton score</div>
+              <div className="text-2xl text-center font-bold text-orange-500 mb-2">{t('game.yourScore')}</div>
               <div className="text-5xl text-center font-black text-amber-500 mb-2">{score}</div>
 
               {score >= highScore && score > 0 && (
                 <div className="bg-yellow-50 rounded-lg p-3 my-4 border border-yellow-200">
                   <div className="text-xl text-yellow-600 text-center font-bold flex items-center justify-center">
-                    <span className="text-2xl mr-2">🏆</span> Nouveau Record !
+                    <span className="text-2xl mr-2">🏆</span> {t('game.newRecord')}
                   </div>
                 </div>
               )}
 
               <div className="text-lg text-center text-gray-600 mt-2">
-                Ton meilleur score: <span className="font-bold">{highScore}</span>
+                {t('game.bestScore')}: <span className="font-bold">{highScore}</span>
               </div>
             </div>
 
@@ -207,7 +209,7 @@ export default function GameCanvas() {
                 }}
               >
                 <span className="mr-2">🔄</span>
-                Rejouer
+                {t('game.playAgain')}
               </button>
 
               <button
@@ -217,12 +219,12 @@ export default function GameCanvas() {
                 onClick={resetHighScore}
               >
                 <span className="mr-2">🗑️</span>
-                Effacer record
+                {t('game.resetRecord')}
               </button>
             </div>
 
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-lg text-gray-700">
-              N&apos;abandonne pas, Sebi a besoin de toi !
+              {t('game.encouragement')}
             </div>
           </div>
         )}
@@ -233,16 +235,16 @@ export default function GameCanvas() {
         {/* Compteur de score en haut */}
         <div className="flex justify-between w-full px-8 text-xl font-bold text-gray-800 drop-shadow-md absolute top-4 left-0 z-30">
           <div className="bg-orange-100/80 px-6 py-2 rounded-full border border-orange-200/50 shadow-sm">
-            <span>Score: <span className="font-extrabold">{score}</span></span>
+            <span>{t('game.scoreLabel')}: <span className="font-extrabold">{score}</span></span>
           </div>
 
           <div className="bg-amber-100/80 px-6 py-2 rounded-full border border-amber-200/50 shadow-sm">
-            <span>Meilleur: <span className="font-extrabold">{highScore}</span></span>
+            <span>{t('game.bestLabel')}: <span className="font-extrabold">{highScore}</span></span>
           </div>
 
           {nightMode && (
             <div className="bg-indigo-100/80 px-6 py-2 rounded-full border border-indigo-200/50 shadow-sm animate-pulse">
-              <span className="flex items-center text-indigo-700"><span className="mr-2">🌙</span> Mode nuit</span>
+              <span className="flex items-center text-indigo-700"><span className="mr-2">🌙</span> {t('game.nightMode')}</span>
             </div>
           )}
         </div>
@@ -258,7 +260,7 @@ export default function GameCanvas() {
       >
         <span className="flex items-center">
           <span className="mr-2">⬆️</span>
-          Sauter
+          {t('game.actions.jump')}
         </span>
       </button>
 

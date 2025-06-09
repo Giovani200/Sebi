@@ -94,7 +94,7 @@ export default function GameTutorial({ onClose }) {
         <div className={`relative flex flex-col md:flex-row items-center gap-6 my-4 ${animationClass}`}>
           <div className="animate-bounce-slow w-32 h-32 md:w-40 md:h-40">
             <Image
-              src="/images/SEBI.png"
+              src="/images/sebi.webp"
               alt="Sebi"
               width={160}
               height={160}

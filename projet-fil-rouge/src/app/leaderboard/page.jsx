@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useTranslation } from 'react-i18next';
+import '../../i18n/client';
+
 
 export default function LeaderboardPage() {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [topGlobal, setTopGlobal] = useState([]);
     const [topSebi, setTopSebi] = useState([]);
@@ -76,7 +80,7 @@ export default function LeaderboardPage() {
         }
     };
 
-    return (
+     return (
         <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 pt-28 pb-16 relative overflow-hidden">
             {/* Éléments décoratifs */}
             <div className="absolute top-40 left-10 w-20 h-20 bg-yellow-300 rounded-full opacity-20 animate-pulse-slow"></div>
@@ -92,10 +96,10 @@ export default function LeaderboardPage() {
                 {/* Titre principal */}
                 <div className="text-center mb-12">
                     <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 mb-3 transform -rotate-1">
-                        🏆 Super Champions 🏆
+                        🏆 {t('leaderboard.title')} 🏆
                     </h1>
                     <p className="text-2xl text-orange-700 font-bold">
-                        Les meilleurs joueurs toutes catégories
+                        {t('leaderboard.subtitle')}
                     </p>
                 </div>
                 
@@ -104,7 +108,7 @@ export default function LeaderboardPage() {
                     <div className="mb-12 relative">
                         <div className="bg-gradient-to-r from-purple-500 to-indigo-500 rounded-3xl shadow-xl overflow-hidden border-4 border-indigo-300 pb-12 pt-8 px-6">
                             <h2 className="text-3xl font-bold text-white text-center mb-8 transform rotate-1">
-                                🌍 Grand Podium Général 🌍
+                                🌍 {t('leaderboard.globalPodium')} 🌍
                             </h2>
                             
                             <div className="flex justify-center items-end space-x-6 md:space-x-10">
@@ -128,7 +132,7 @@ export default function LeaderboardPage() {
                                     </div>
                                     <div className="bg-gradient-to-r from-slate-200 to-gray-200 rounded-xl px-5 py-3 text-center shadow-lg transform -rotate-1">
                                         <p className="font-bold text-lg text-gray-800">{topGlobal[1]?.user?.firstName || '---'}</p>
-                                        <p className="text-md font-bold text-gray-600">{topGlobal[1]?.totalScore || 0} pts</p>
+                                        <p className="text-md font-bold text-gray-600">{topGlobal[1]?.totalScore || 0} {t('leaderboard.points')}</p>
                                     </div>
                                     <div className="h-24 w-20 bg-gradient-to-b from-silver to-gray-300 rounded-t-xl mt-3 shadow-lg"></div>
                                 </div>
@@ -154,7 +158,7 @@ export default function LeaderboardPage() {
                                     </div>
                                     <div className="bg-gradient-to-r from-yellow-200 to-amber-200 rounded-xl px-6 py-4 text-center shadow-lg transform rotate-1">
                                         <p className="font-bold text-xl text-amber-800">{topGlobal[0]?.user?.firstName || '---'}</p>
-                                        <p className="text-lg font-bold text-amber-700">{topGlobal[0]?.totalScore || 0} pts</p>
+                                        <p className="text-lg font-bold text-amber-700">{topGlobal[0]?.totalScore || 0} {t('leaderboard.points')}</p>
                                     </div>
                                     <div className="h-32 w-24 bg-gradient-to-b from-yellow-400 to-amber-400 rounded-t-xl mt-3 shadow-lg"></div>
                                 </div>
@@ -179,7 +183,7 @@ export default function LeaderboardPage() {
                                     </div>
                                     <div className="bg-gradient-to-r from-amber-200 to-orange-200 rounded-xl px-4 py-2 text-center shadow-lg transform -rotate-2">
                                         <p className="font-bold text-base text-amber-800">{topGlobal[2]?.user?.firstName || '---'}</p>
-                                        <p className="text-sm font-bold text-amber-700">{topGlobal[2]?.totalScore || 0} pts</p>
+                                        <p className="text-sm font-bold text-amber-700">{topGlobal[2]?.totalScore || 0} {t('leaderboard.points')}</p>
                                     </div>
                                     <div className="h-20 w-18 bg-gradient-to-b from-amber-600 to-orange-400 rounded-t-xl mt-3 shadow-lg"></div>
                                 </div>
@@ -197,7 +201,7 @@ export default function LeaderboardPage() {
                             <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-orange-300 transform rotate-0.5">
                                 <div className="bg-gradient-to-r from-orange-500 to-amber-500 py-5 px-6">
                                     <h2 className="text-3xl font-bold text-white text-center transform -rotate-1">
-                                        🏆 Top 3 Sebi Runner 🏆
+                                        🏆 {t('leaderboard.topSebi')} 🏆
                                     </h2>
                                 </div>
                                 <div className="p-6">
@@ -229,12 +233,12 @@ export default function LeaderboardPage() {
                                                     <div>
                                                         <h3 className="font-bold text-lg text-gray-800">{player.user?.firstName || 'Joueur'}</h3>
                                                         <div className="flex space-x-1 text-xs text-gray-500">
-                                                            <span>🎮 {player.gamesPlayed || 0} parties</span>
+                                                            <span>🎮 {player.gamesPlayed || 0} {player.gamesPlayed === 1 ? t('leaderboard.gamesSingular') : t('leaderboard.games')}</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="bg-gradient-to-r from-orange-100 to-amber-100 rounded-full px-5 py-3 font-bold text-lg text-orange-700 shadow-md transform rotate-1">
-                                                    {player.bestScore || 0} pts
+                                                    {player.bestScore || 0} {t('leaderboard.points')}
                                                 </div>
                                             </div>
                                         ))}
@@ -247,7 +251,7 @@ export default function LeaderboardPage() {
                         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-amber-300 transform rotate-0.5">
                             <div className="bg-gradient-to-r from-amber-500 to-orange-500 py-5 px-6">
                                 <h2 className="text-3xl font-bold text-white text-center transform -rotate-1">
-                                    🏆 Classement Sebi 🏆
+                                    🏆 {t('leaderboard.sebiRanking')} 🏆
                                 </h2>
                             </div>
                             <div className="divide-y divide-amber-100">
@@ -283,20 +287,20 @@ export default function LeaderboardPage() {
                                                 <div>
                                                     <h3 className="font-bold text-gray-800">{player.user?.firstName || 'Joueur'}</h3>
                                                     <div className="flex space-x-1 text-xs text-gray-500">
-                                                        <span>🎮 {player.gamesPlayed || 0} jeux</span>
+                                                        <span>🎮 {player.gamesPlayed || 0} {player.gamesPlayed === 1 ? t('leaderboard.gamesSingular') : t('leaderboard.games')}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-full px-4 py-2 font-bold text-amber-700 shadow-md">
-                                                {player.totalScore || 0} pts
+                                                {player.totalScore || 0} {t('leaderboard.points')}
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="p-8 text-center">
-                                        <p className="text-xl text-gray-500 mb-4">Pas encore de scores pour les jeux Sebi !</p>
+                                        <p className="text-xl text-gray-500 mb-4">{t('leaderboard.noScores')}</p>
                                         <p className="text-lg text-amber-600 font-medium">
-                                            Commence à jouer aux jeux Sebi pour apparaître dans le classement.
+                                            {t('leaderboard.startPlaying')}
                                         </p>
                                     </div>
                                 )}
@@ -304,13 +308,13 @@ export default function LeaderboardPage() {
                         </div>
                     </div>
 
-                    {/* COLONNE DROITE - JAME */}
+                    {/* COLONNE DROITE - JAMES */}
                     <div className="space-y-6">
                         {/* PODIUM JAMES - TOP 3 (ou message bientôt disponible) */}
                         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-blue-300 transform -rotate-0.5">
                             <div className="bg-gradient-to-r from-blue-500 to-indigo-500 py-5 px-6">
                                 <h2 className="text-3xl font-bold text-white text-center transform rotate-1">
-                                    🏆 Top 3 James le Hibou 🏆
+                                    🏆 {t('leaderboard.topJames')} 🏆
                                 </h2>
                             </div>
                             <div className="p-6">
@@ -343,12 +347,12 @@ export default function LeaderboardPage() {
                                                     <div>
                                                         <h3 className="font-bold text-lg text-gray-800">{player.user?.firstName || 'Joueur'}</h3>
                                                         <div className="flex space-x-1 text-xs text-gray-500">
-                                                            <span>🎮 {player.gamesPlayed || 0} parties</span>
+                                                            <span>🎮 {player.gamesPlayed || 0} {player.gamesPlayed === 1 ? t('leaderboard.gamesSingular') : t('leaderboard.games')}</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full px-5 py-3 font-bold text-lg text-blue-700 shadow-md transform rotate-1">
-                                                    {player.bestScore || 0} pts
+                                                    {player.bestScore || 0} {t('leaderboard.points')}
                                                 </div>
                                             </div>
                                         ))}
@@ -357,7 +361,7 @@ export default function LeaderboardPage() {
                                     <div className="p-10 text-center">
                                         <div className="w-32 h-32 mx-auto mb-6">
                                             <img 
-                                                src="/images/owl.png" 
+                                                src="/images/owl.webp" 
                                                 alt="Jame le hibou"
                                                 className="w-full h-full object-contain opacity-70"
                                                 onError={(e) => {
@@ -366,9 +370,9 @@ export default function LeaderboardPage() {
                                                 }}
                                             />
                                         </div>
-                                        <h3 className="text-2xl font-bold text-blue-600 mb-4">Le Top 3 James arrive bientôt !</h3>
+                                        <h3 className="text-2xl font-bold text-blue-600 mb-4">{t('leaderboard.comingSoon')}</h3>
                                         <p className="text-lg text-gray-600 mb-6">
-                                            Jame le hibou prépare des jeux passionnants et éducatifs pour toi.
+                                            {t('leaderboard.jamesGames')}
                                         </p>
                                     </div>
                                 )}
@@ -379,7 +383,7 @@ export default function LeaderboardPage() {
                         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-indigo-300 transform rotate-0.5 opacity-80">
                             <div className="bg-gradient-to-r from-indigo-500 to-blue-500 py-5 px-6">
                                 <h2 className="text-3xl font-bold text-white text-center transform -rotate-1">
-                                    🏆 Classement Jame - À venir 🏆
+                                    🏆 {t('leaderboard.jamesRanking')} 🏆
                                 </h2>
                             </div>
                             <div className="p-8 text-center">
@@ -389,7 +393,7 @@ export default function LeaderboardPage() {
                                     <div className="h-8 bg-indigo-100 rounded-full mb-4 mx-auto w-3/4"></div>
                                 </div>
                                 <p className="text-lg text-indigo-600 font-medium mt-8">
-                                    Les classements des jeux Jame seront bientôt disponibles !
+                                    {t('leaderboard.jamesRankingMessage')}
                                 </p>
                             </div>
                         </div>
@@ -399,7 +403,7 @@ export default function LeaderboardPage() {
                 {/* Message d'encouragement */}
                 <div className="mt-8 text-center">
                     <p className="text-xl text-orange-600 font-bold animate-bounce-slow">
-                        👑 Continue à jouer pour devenir le roi des jeux ! 👑
+                        👑 {t('leaderboard.encouragement')} 👑
                     </p>
                 </div>
             </div>

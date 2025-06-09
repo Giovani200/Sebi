@@ -3,8 +3,11 @@ import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
+import '../../i18n/client';
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -60,8 +63,8 @@ export default function ResetPasswordPage() {
       <div className="bg-white/90 p-8 rounded-tl-3xl rounded-br-3xl shadow-lg max-w-md w-full relative border-2 border-amber-200 animate-scaleIn">
         <div className="absolute -top-8 -right-8 w-24 h-24 transform rotate-12">
           <Image
-            src="/images/SEBI.png"
-            alt="Sebi la gazelle"
+            src="/images/sebi.webp"
+            alt={t('resetPassword.sebiAlt')}
             width={90}
             height={90}
             className="object-contain animate-bounce-slow"
@@ -70,23 +73,23 @@ export default function ResetPasswordPage() {
 
         <div className="bg-gradient-to-r from-orange-100 to-amber-50 p-3 rounded-lg mb-6 shadow-inner">
           <h2 className="text-2xl font-bold text-center text-orange-600 drop-shadow-sm animate-slideIn">
-            Nouveau mot de passe
+            {t('resetPassword.title')}
           </h2>
           <p className="text-center text-orange-500 text-sm mt-1">
-            Choisissez un mot de passe sécurisé
+            {t('resetPassword.subtitle')}
           </p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="animate-fadeInUp animate-delay-100 bg-orange-50/50 rounded-xl p-4">
             <label className="text-sm text-orange-700 font-medium mb-1 block">
-              Nouveau mot de passe
+              {t('resetPassword.fields.newPassword')}
             </label>
             <div className="flex items-center border-b-2 border-orange-300">
               <span className="text-orange-400 mr-2">🔒</span>
               <input
                 type="password"
-                placeholder="Votre nouveau mot de passe"
+                placeholder={t('resetPassword.placeholders.newPassword')}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full text-gray-700 p-2 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300 placeholder-orange-300/70"
@@ -97,13 +100,13 @@ export default function ResetPasswordPage() {
 
           <div className="animate-fadeInUp animate-delay-200 bg-orange-50/50 rounded-xl p-4">
             <label className="text-sm text-orange-700 font-medium mb-1 block">
-              Confirmation
+              {t('resetPassword.fields.confirmPassword')}
             </label>
             <div className="flex items-center border-b-2 border-orange-300">
               <span className="text-orange-400 mr-2">🔐</span>
               <input
                 type="password"
-                placeholder="Confirmez votre mot de passe"
+                placeholder={t('resetPassword.placeholders.confirmPassword')}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full text-gray-700 p-2 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300 placeholder-orange-300/70"
@@ -113,8 +116,8 @@ export default function ResetPasswordPage() {
           </div>
 
           {message && (
-            <div className={`${message.includes('succès') ? 'bg-green-50 border-green-500 text-green-700' : 'bg-orange-50 border-orange-500 text-orange-700'} border-r-4 p-4 rounded-xl animate-fadeInUp flex items-center`}>
-              <span className="mr-2 text-xl">{message.includes('succès') ? '✅' : '⚠️'}</span>
+            <div className={`${message.includes(t('resetPassword.success')) ? 'bg-green-50 border-green-500 text-green-700' : 'bg-orange-50 border-orange-500 text-orange-700'} border-r-4 p-4 rounded-xl animate-fadeInUp flex items-center`}>
+              <span className="mr-2 text-xl">{message.includes(t('resetPassword.success')) ? '✅' : '⚠️'}</span>
               <p className="text-sm font-medium">{message}</p>
             </div>
           )}
@@ -126,7 +129,7 @@ export default function ResetPasswordPage() {
                      hover:scale-105 shadow-md border border-orange-200 animate-fadeInUp animate-delay-300 flex items-center justify-center"
           >
             <span className="mr-2">🔄</span>
-            Réinitialiser mon mot de passe
+            {t('resetPassword.buttons.reset')}
           </button>
           
           <div className="text-center mt-4 animate-fadeInUp animate-delay-300">
@@ -135,7 +138,7 @@ export default function ResetPasswordPage() {
               className="text-orange-600 hover:text-orange-800 transition-colors text-sm"
             >
               <span className="border-b border-dashed border-orange-300">
-                Retour à la connexion
+                {t('resetPassword.buttons.backToLogin')}
               </span>
             </Link>
           </div>

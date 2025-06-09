@@ -2,13 +2,17 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import soundManager from '../../utils/SoundManager';
+import '../../i18n/client'; // Importation de la configuration i18n
+
 
 export default function Games() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const animationFrameRef = useRef(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSoundPlaying, setIsSoundPlaying] = useState(true);
+  const { t } = useTranslation(); // Hook de traduction
 
   // Gestion de l'entrée sur la page avec animation
   useEffect(() => {
@@ -119,8 +123,8 @@ export default function Games() {
       {/* Bouton de contrôle du son */}
       <button
         onClick={toggleSound}
-        className="fixed top-24 right-6 z-10 bg-white/80 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
-        aria-label={isSoundPlaying ? "Désactiver le son" : "Activer le son"}
+        className="fixed top-30 right-6 z-10 bg-white/80 hover:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
+        aria-label={isSoundPlaying ? t('soundControl.turnOff') : t('soundControl.turnOn')}
       >
         {isSoundPlaying ? (
           <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,10 +161,10 @@ export default function Games() {
         {/* Titre avec bulles d'animation */}
         <div className="relative text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-4 animate-bounce-once">
-            À quoi veux-tu jouer aujourd'hui ?
+            {t('gamesPage.title')}
           </h1>
           <div className="text-xl md:text-2xl font-medium text-orange-600 animate-fade-in animation-delay-500">
-            Choisis ton compagnon d'aventure !
+            {t('gamesPage.subtitle')}
           </div>
 
           {/* Bulles décoratives */}
@@ -171,7 +175,7 @@ export default function Games() {
           <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 animate-jump-in-out">
             <div className="relative w-16 h-16">
               <Image
-                src="/images/SEBI.png"
+                src="/images/sebi.webp"
                 alt="Sebi mascotte"
                 fill
                 className="object-contain"
@@ -192,7 +196,7 @@ export default function Games() {
               transitionDelay: '300ms',
               transform: mousePosition.x ? `perspective(1000px) rotateY(${(mousePosition.x / window.innerWidth - 0.5) * 5}deg) rotateX(${(mousePosition.y / window.innerHeight - 0.5) * -5}deg)` : 'none'
             }}
-            // onMouseEnter={playHoverSound}
+            onMouseEnter={playHoverSound}
           >
             <div className="p-6 relative">
               {/* Fond coloré et amusant avec animation */}
@@ -208,7 +212,7 @@ export default function Games() {
                   <div className="absolute -inset-6 bg-orange-300/20 rounded-full blur-xl"></div>
                   <div className="absolute inset-0 bg-gradient-to-br from-transparent to-orange-100/50 animate-pulse-very-slow rounded-full"></div>
                   <Image
-                    src="/images/SEBI.png"
+                    src="/images/sebi.webp"
                     alt="Sebi la gazelle"
                     fill
                     className="object-contain"
@@ -218,10 +222,10 @@ export default function Games() {
                 {/* Texte simplifié pour enfants avec animation */}
                 <div className="animate-fade-in animation-delay-700">
                   <h2 className="text-2xl md:text-3xl font-bold text-orange-600 mb-3">
-                    Joue avec Sebi !
+                    {t('gamesPage.sebiCard.title')}
                   </h2>
                   <p className="text-lg text-gray-700 text-center mb-6">
-                    Aide Sebi à sauter par-dessus les obstacles !
+                    {t('gamesPage.sebiCard.description')}
                   </p>
                 </div>
 
@@ -233,7 +237,7 @@ export default function Games() {
                            hover:shadow-orange-200/50 hover:shadow-xl transition-all duration-300
                            animate-pulse-subtle"
                 >
-                  <span>Jouer maintenant !</span>
+                  <span>{t('gamesPage.playNow')}</span>
                   <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
                   </svg>
@@ -253,7 +257,7 @@ export default function Games() {
               transitionDelay: '500ms',
               transform: mousePosition.x ? `perspective(1000px) rotateY(${(mousePosition.x / window.innerWidth - 0.5) * 5}deg) rotateX(${(mousePosition.y / window.innerHeight - 0.5) * -5}deg)` : 'none'
             }}
-            // onMouseEnter={playHoverSound}
+            onMouseEnter={playHoverSound}
           >
             <div className="p-6 relative">
               {/* Fond coloré et amusant */}
@@ -269,7 +273,7 @@ export default function Games() {
                   <div className="absolute -inset-6 bg-amber-300/20 rounded-full blur-xl"></div>
                   <div className="absolute inset-0 bg-gradient-to-br from-transparent to-amber-100/50 animate-pulse-very-slow rounded-full"></div>
                   <Image
-                    src="/images/james.png"
+                    src="/images/owl.webp"
                     alt="James le hibou"
                     fill
                     className="object-contain"
@@ -279,10 +283,10 @@ export default function Games() {
                 {/* Texte simplifié pour enfants avec animation */}
                 <div className="animate-fade-in animation-delay-900">
                   <h2 className="text-2xl md:text-3xl font-bold text-amber-600 mb-3">
-                    Joue avec James !
+                    {t('gamesPage.jamesCard.title')}
                   </h2>
                   <p className="text-lg text-gray-700 text-center mb-6">
-                    Résous des énigmes avec James le hibou !
+                    {t('gamesPage.jamesCard.description')}
                   </p>
                 </div>
 
@@ -294,7 +298,7 @@ export default function Games() {
                            hover:shadow-amber-200/50 hover:shadow-xl transition-all duration-300
                            animate-pulse-subtle animation-delay-300"
                 >
-                  <span>Jouer maintenant !</span>
+                  <span>{t('gamesPage.playNow')}</span>
                   <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
                   </svg>

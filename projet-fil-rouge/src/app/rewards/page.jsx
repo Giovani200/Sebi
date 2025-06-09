@@ -3,12 +3,16 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+import '../../i18n/client';
 
 export default function RewardsGallery() {
+  const { t } = useTranslation();
   const [rewards, setRewards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedReward, setSelectedReward] = useState(null);
   const router = useRouter();
+
 
   useEffect(() => {
     // Charger les récompenses de l'utilisateur
@@ -73,10 +77,10 @@ export default function RewardsGallery() {
         {/* Titre principal */}
         <div className="text-center mb-10">
           <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 via-amber-500 to-orange-600 mb-3 transform -rotate-1">
-            ✨ Mon Trésor de Récompenses ✨
+            ✨ {t('rewards.title')} ✨
           </h1>
           <p className="text-2xl text-amber-700 font-bold">
-            Regarde tous les trésors que tu as gagnés !
+            {t('rewards.subtitle')}
           </p>
         </div>
         
@@ -86,7 +90,7 @@ export default function RewardsGallery() {
               <div className="w-32 h-32 mx-auto mb-6 relative">
                 <Image 
                   src="/images/treasure-chest-empty.png" 
-                  alt="Coffre au trésor vide"
+                  alt={t('rewards.emptyChestAlt')}
                   width={128}
                   height={128}
                   className="object-contain"
@@ -96,23 +100,23 @@ export default function RewardsGallery() {
                   }}
                 />
               </div>
-              <h2 className="text-3xl font-bold text-amber-600 mb-4">Ton coffre est vide !</h2>
-              <p className="text-xl text-gray-600 mb-4">Tu n'as pas encore de récompenses dans ta collection.</p>
-              <p className="text-lg text-gray-600 mb-8">Joue aux jeux et gagne des points pour remplir ton coffre au trésor !</p>
+              <h2 className="text-3xl font-bold text-amber-600 mb-4">{t('rewards.emptyChest')}</h2>
+              <p className="text-xl text-gray-600 mb-4">{t('rewards.noRewardsYet')}</p>
+              <p className="text-lg text-gray-600 mb-8">{t('rewards.playToEarn')}</p>
               <button 
                 className="bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-bold py-4 px-8 rounded-full text-xl shadow-lg transform hover:scale-105 transition-all duration-300 animate-pulse-slow"
                 onClick={() => router.push('/games')}
               >
                 <span className="flex items-center justify-center">
                   <span className="mr-2">🎮</span>
-                  Partir à l'aventure !
+                  {t('rewards.startAdventure')}
                 </span>
               </button>
             </div>
           ) : (
             <div>
               <h2 className="text-3xl font-bold text-center text-amber-600 mb-8 transform -rotate-1">
-                🏆 Tes Super Récompenses 🏆
+                🏆 {t('rewards.yourRewards')} 🏆
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {rewards.map((reward) => (
@@ -125,7 +129,7 @@ export default function RewardsGallery() {
                       <div className="absolute inset-0 bg-yellow-300 opacity-20 animate-pulse-very-slow"></div>
                       <Image 
                         src={reward.imageUrl} 
-                        alt={`Récompense ${reward.milestone}`}
+                        alt={t('rewards.rewardImage', { milestone: reward.milestone })}
                         fill
                         className="object-contain p-2"
                       />
@@ -134,8 +138,12 @@ export default function RewardsGallery() {
                       </div>
                     </div>
                     <div className="p-4">
-                      <h3 className="font-bold text-xl text-amber-700">{reward.title || `Niveau ${reward.milestone}`}</h3>
-                      <p className="text-amber-600 mt-1 font-medium">Obtenu le {new Date(reward.generatedAt).toLocaleDateString()}</p>
+                      <h3 className="font-bold text-xl text-amber-700">
+                        {reward.title || t('rewards.level', { level: reward.milestone })}
+                      </h3>
+                      <p className="text-amber-600 mt-1 font-medium">
+                        {t('rewards.obtainedOn')} {new Date(reward.generatedAt).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -147,7 +155,7 @@ export default function RewardsGallery() {
         {/* Message d'encouragement */}
         <div className="mt-8 text-center">
           <p className="text-xl text-amber-600 font-bold animate-float-slow">
-            ✨ Continue à jouer pour gagner encore plus de trésors ! ✨
+            ✨ {t('rewards.encouragement')} ✨
           </p>
         </div>
       </div>
@@ -166,7 +174,7 @@ export default function RewardsGallery() {
                 <div className="w-full h-full relative p-6">
                   <Image 
                     src={selectedReward.imageUrl} 
-                    alt={`Récompense ${selectedReward.milestone}`}
+                    alt={t('rewards.rewardImage', { milestone: selectedReward.milestone })}
                     fill
                     className="object-contain"
                   />
@@ -188,7 +196,7 @@ export default function RewardsGallery() {
                 >
                   <span className="flex items-center">
                     <span className="mr-2">👍</span>
-                    Super !
+                    {t('rewards.awesome')}
                   </span>
                 </button>
               </div>

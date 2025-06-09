@@ -3,8 +3,11 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
+import '../../i18n/client';
 
 const SebiGuide = () => {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
@@ -72,7 +75,7 @@ const SebiGuide = () => {
             <button 
               onClick={() => setIsOpen(false)}
               className="absolute top-1 right-1 text-orange-400 hover:text-orange-600"
-              aria-label="Fermer le message"
+              aria-label={t('sebiGuide.closeMessage')}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -87,7 +90,7 @@ const SebiGuide = () => {
         <button 
           onClick={toggleMinimize}
           className="bg-white w-8 h-8 rounded-full flex items-center justify-center shadow-md hover:shadow-lg border-2 border-orange-200"
-          aria-label={isMinimized ? "Agrandir Sebi" : "Réduire Sebi"}
+          aria-label={isMinimized ? t('sebiGuide.expand') : t('sebiGuide.minimize')}
         >
           {isMinimized ? (
             <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,8 +116,8 @@ const SebiGuide = () => {
         }}
       >
         <Image
-          src="/images/SEBI.png"
-          alt="Sebi la gazelle - ton guide"
+          src="/images/sebi.webp"
+          alt={t('sebiGuide.altText')}
           fill
           className="object-contain p-1"
         />

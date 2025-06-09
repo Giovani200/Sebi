@@ -4,18 +4,23 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
+import '../../i18n/client';
 
 const Nav = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+  const [mounted, setMounted] = useState(false);
+  const { t, i18n } = useTranslation();
+
+  // Vérification de l'authentification
   const checkAuthStatus = async () => {
     try {
       const res = await fetch('/api/auth/me');
       const data = await res.json();
-      
+
       if (res.ok && data.isAuthenticated) {
         setUser(data.user);
       } else {
@@ -28,35 +33,76 @@ const Nav = () => {
       setLoading(false);
     }
   };
-  
+
+  // Initialisation côté client
   useEffect(() => {
+    // Restaurer la langue depuis localStorage
+    const savedLang = localStorage.getItem('language') || 'fr';
+    if (i18n.language !== savedLang) {
+      i18n.changeLanguage(savedLang);
+    }
+    
+    // Marquer comme monté pour éviter les problèmes d'hydratation
+    setMounted(true);
+    
+    // Vérifier l'authentification
     checkAuthStatus();
-  }, [pathname]); // Vérifier à chaque changement de page
+  }, [i18n]); 
   
+  // Vérifier l'authentification à chaque changement de page
+  useEffect(() => {
+    if (mounted) {
+      checkAuthStatus();
+    }
+  }, [pathname, mounted]);
+
+  // Gestion de la déconnexion
   const handleLogout = async () => {
     try {
       const res = await fetch('/api/auth/logout', { method: 'POST' });
       if (res.ok) {
         setUser(null);
-        
+
         // Afficher notification
-        window.dispatchEvent(new CustomEvent('showNotification', { 
-          detail: { message: 'Déconnexion réussie!', type: 'success' } 
+        window.dispatchEvent(new CustomEvent('showNotification', {
+          detail: { message: t('notifications.logoutSuccess'), type: 'success' }
         }));
-        
+
         // Redirection optionnelle
         router.push('/');
       }
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
-      
+
       // Notification d'erreur
-      window.dispatchEvent(new CustomEvent('showNotification', { 
-        detail: { message: 'Erreur lors de la déconnexion', type: 'error' } 
+      window.dispatchEvent(new CustomEvent('showNotification', {
+        detail: { message: t('notifications.logoutError'), type: 'error' }
       }));
     }
   };
 
+  // Afficher un placeholder pendant le chargement côté client
+  if (!mounted) {
+    return (
+      <nav className="fixed md:inset-x-0 md:top-0 md:bottom-auto inset-x-0 bottom-0 z-50">
+        <div className="hidden md:block bg-gradient-to-r from-orange-100 to-amber-100 shadow-lg rounded-b-2xl border-b-4 border-orange-200">
+          <div className="max-w-screen-xl mx-auto px-6">
+            <div className="flex justify-between items-center h-24">
+              {/* Placeholder pour éviter les sauts de mise en page */}
+              <div className="w-28 h-14"></div>
+              <div className="flex-1"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="md:hidden bg-gradient-to-r from-orange-100 to-amber-100 shadow-lg rounded-t-2xl border-t-4 border-orange-200">
+          <div className="h-20"></div>
+        </div>
+      </nav>
+    );
+  }
+
+  // Afficher le composant complet une fois monté
   return (
     <nav className="fixed md:inset-x-0 md:top-0 md:bottom-auto inset-x-0 bottom-0 z-50">
       {/* Version desktop */}
@@ -67,7 +113,7 @@ const Nav = () => {
             <Link href="/" className="flex items-center space-x-3 transform hover:scale-110 transition-all duration-300">
               <div className="relative w-14 h-14 bg-white p-1 rounded-full shadow-md overflow-hidden border-2 border-orange-300">
                 <Image
-                  src="/images/logo.png"
+                  src="/images/logo.webp"
                   alt="Logo Sebi"
                   fill
                   className="object-contain"
@@ -89,7 +135,7 @@ const Nav = () => {
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                 </svg>
-                <span className="font-medium mt-1">Jeux</span>
+                <span className="font-medium mt-1">{t('nav.games')}</span>
               </Link>
 
               <Link 
@@ -103,7 +149,7 @@ const Nav = () => {
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="font-medium mt-1">Scores et Classement</span>
+                <span className="font-medium mt-1">{t('nav.scores')}</span>
               </Link>
 
               <Link 
@@ -122,7 +168,7 @@ const Nav = () => {
                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></span>
                   )}
                 </div>
-                <span className="font-medium mt-1">Mes Étoiles</span>
+                <span className="font-medium mt-1">{t('nav.stars')}</span>
               </Link>
 
               <div className="flex items-center space-x-4 ml-4">
@@ -141,7 +187,7 @@ const Nav = () => {
                     <button 
                       onClick={handleLogout}
                       className="p-2 rounded-full bg-white border-2 border-red-400 text-red-500 hover:bg-red-50 transform hover:scale-110 transition-all duration-300"
-                      aria-label="Déconnexion"
+                      aria-label={t('nav.logout')}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -158,7 +204,7 @@ const Nav = () => {
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                         </svg>
-                        Inscription
+                        {t('nav.register')}
                       </span>
                     </Link>
                     <Link 
@@ -169,7 +215,7 @@ const Nav = () => {
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                         </svg>
-                        Connexion
+                        {t('nav.login')}
                       </span>
                     </Link>
                   </div>
@@ -180,7 +226,7 @@ const Nav = () => {
         </div>
       </div>
 
-      {/* Version mobile - sans le lien d'aide */}
+      {/* Version mobile */}
       <div className="md:hidden bg-gradient-to-r from-orange-100 to-amber-100 backdrop-blur-sm shadow-lg rounded-t-2xl border-t-4 border-orange-200">
         <div className="grid grid-cols-5 gap-1 px-3 py-4">
           <Link 
@@ -194,7 +240,7 @@ const Nav = () => {
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            <span className="text-xs font-bold mt-1">Accueil</span>
+            <span className="text-xs font-bold mt-1">{t('nav.home')}</span>
           </Link>
 
           <Link 
@@ -208,10 +254,9 @@ const Nav = () => {
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
             </svg>
-            <span className="text-xs font-bold mt-1">Jeux</span>
+            <span className="text-xs font-bold mt-1">{t('nav.games')}</span>
           </Link>
 
-          {/* Scores en version mobile */}
           <Link 
             href="/leaderboard" 
             className={`flex flex-col items-center p-2 rounded-xl transition-all duration-300 transform ${
@@ -223,10 +268,9 @@ const Nav = () => {
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-xs font-bold mt-1">Scores</span>
+            <span className="text-xs font-bold mt-1">{t('nav.scores')}</span>
           </Link>
 
-          {/* Récompenses en version mobile */}
           <Link 
             href="/rewards" 
             className={`flex flex-col items-center p-2 rounded-xl transition-all duration-300 transform ${
@@ -243,7 +287,7 @@ const Nav = () => {
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></span>
               )}
             </div>
-            <span className="text-xs font-bold mt-1">Étoiles</span>
+            <span className="text-xs font-bold mt-1">{t('nav.stars')}</span>
           </Link>
 
           {user ? (
@@ -256,7 +300,7 @@ const Nav = () => {
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                <span className="text-xs font-bold mt-1">Quitter</span>
+                <span className="text-xs font-bold mt-1">{t('nav.exit')}</span>
               </button>
             </div>
           ) : (
@@ -271,7 +315,7 @@ const Nav = () => {
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
-              <span className="text-xs font-bold mt-1">Entrer</span>
+              <span className="text-xs font-bold mt-1">{t('nav.enter')}</span>
             </Link>
           )}
         </div>

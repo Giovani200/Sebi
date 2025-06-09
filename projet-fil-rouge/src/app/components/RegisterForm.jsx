@@ -2,8 +2,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import '../../i18n/client'; // Assurez-vous que le fichier i18n est correctement importé
+import { useTranslation } from 'react-i18next';
 
 export default function RegisterForm() {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [prenom, setPrenom] = useState('');
@@ -73,7 +76,7 @@ export default function RegisterForm() {
         setShowParentEmail(parseInt(value) < 14);
     };
 
-    return (
+     return (
         <div className="min-h-screen w-full bg-gradient-to-tr from-[#fdf2dd] to-amber-50 py-16 px-4 flex items-center justify-center relative overflow-auto">
             {/* Éléments décoratifs variés */}
             <div className="absolute top-[8%] left-[15%] w-36 h-20 bg-orange-100/40 rounded-tr-3xl rounded-bl-3xl transform rotate-6"></div>
@@ -89,8 +92,8 @@ export default function RegisterForm() {
             <div className="bg-white/90 p-8 rounded-tr-3xl rounded-bl-3xl shadow-lg w-full max-w-lg relative border-2 border-amber-200 transform rotate-1 animate-scaleIn">
                 <div className="absolute -top-12 -left-8 w-28 h-28 transform -rotate-12">
                     <Image
-                        src="/images/SEBI.png"
-                        alt="Sebi la gazelle"
+                        src="/images/sebi.webp"
+                        alt={t('register.sebiAlt')}
                         width={110}
                         height={110}
                         className="object-contain animate-pulse"
@@ -99,22 +102,22 @@ export default function RegisterForm() {
 
                 <div className="bg-gradient-to-br from-orange-100 to-amber-50 p-3 rounded-lg mb-6 shadow-inner">
                     <h2 className="text-3xl font-bold text-center text-orange-600 drop-shadow-sm animate-slideIn">
-                        Rejoins l'aventure !
+                        {t('register.title')}
                     </h2>
-                    <p className="text-center text-orange-500 text-sm mt-1">Crée ton compte pour jouer avec Sebi</p>
+                    <p className="text-center text-orange-500 text-sm mt-1">{t('register.subtitle')}</p>
                 </div>
                 
                 <form onSubmit={handleRegister} className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="animate-fadeInUp animate-delay-100 bg-orange-50/50 rounded-lg p-2">
                             <label className="text-xs text-orange-700 font-medium block mb-1 ml-1">
-                                Prénom
+                                {t('register.fields.firstName')}
                             </label>
                             <div className="flex items-center border-b-2 border-orange-300">
                                 <span className="text-orange-400 mr-2">👤</span>
                                 <input
                                     type="text"
-                                    placeholder="Ton prénom"
+                                    placeholder={t('register.placeholders.firstName')}
                                     value={prenom}
                                     onChange={e => setPrenom(e.target.value)}
                                     className="w-full text-gray-700 p-1 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300 placeholder-orange-300/70"
@@ -125,13 +128,13 @@ export default function RegisterForm() {
 
                         <div className="animate-fadeInUp animate-delay-100 bg-orange-50/50 rounded-lg p-2">
                             <label className="text-xs text-orange-700 font-medium block mb-1 ml-1">
-                                Nom
+                                {t('register.fields.lastName')}
                             </label>
                             <div className="flex items-center border-b-2 border-orange-300">
                                 <span className="text-orange-400 mr-2">📝</span>
                                 <input
                                     type="text"
-                                    placeholder="Ton nom"
+                                    placeholder={t('register.placeholders.lastName')}
                                     value={nom}
                                     onChange={e => setNom(e.target.value)}
                                     className="w-full text-gray-700 p-1 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300 placeholder-orange-300/70"
@@ -143,13 +146,13 @@ export default function RegisterForm() {
 
                     <div className="animate-fadeInUp animate-delay-200 bg-orange-50/50 rounded-lg p-2">
                         <label className="text-xs text-orange-700 font-medium block mb-1 ml-1">
-                            Email
+                            {t('register.fields.email')}
                         </label>
                         <div className="flex items-center border-b-2 border-orange-300">
                             <span className="text-orange-400 mr-2">📧</span>
                             <input
                                 type="email"
-                                placeholder="Ton adresse email"
+                                placeholder={t('register.placeholders.email')}
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
                                 className="w-full text-gray-700 p-1 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300 placeholder-orange-300/70"
@@ -161,13 +164,13 @@ export default function RegisterForm() {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="animate-fadeInUp animate-delay-200 bg-orange-50/50 rounded-lg p-2">
                             <label className="text-xs text-orange-700 font-medium block mb-1 ml-1">
-                                Âge
+                                {t('register.fields.age')}
                             </label>
                             <div className="flex items-center border-b-2 border-orange-300">
                                 <span className="text-orange-400 mr-2">🎂</span>
                                 <input
                                     type="number"
-                                    placeholder="Ton âge"
+                                    placeholder={t('register.placeholders.age')}
                                     value={age}
                                     onChange={handleAgeChange}
                                     className="w-full text-gray-700 p-1 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300 placeholder-orange-300/70"
@@ -180,13 +183,13 @@ export default function RegisterForm() {
 
                         <div className="animate-fadeInUp animate-delay-200 bg-orange-50/50 rounded-lg p-2">
                             <label className="text-xs text-orange-700 font-medium block mb-1 ml-1">
-                                Mot de passe
+                                {t('register.fields.password')}
                             </label>
                             <div className="flex items-center border-b-2 border-orange-300">
                                 <span className="text-orange-400 mr-2">🔒</span>
                                 <input
                                     type="password"
-                                    placeholder="Choisis un mot de passe"
+                                    placeholder={t('register.placeholders.password')}
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
                                     className="w-full text-gray-700 p-1 bg-transparent focus:outline-none focus:border-orange-500 transition-all duration-300 placeholder-orange-300/70"
@@ -201,14 +204,14 @@ export default function RegisterForm() {
                             <div className="flex items-start mb-2">
                                 <span className="text-amber-500 mr-2 text-xl">👪</span>
                                 <label className="text-sm text-orange-700 font-medium">
-                                    Moins de 14 ans ? Un email parent est requis
+                                    {t('register.parentEmailNotice')}
                                 </label>
                             </div>
                             <div className="flex items-center border-b-2 border-amber-300 ml-6">
                                 <span className="text-amber-400 mr-2">📧</span>
                                 <input
                                     type="email"
-                                    placeholder="Email du parent"
+                                    placeholder={t('register.placeholders.parentEmail')}
                                     value={emailParent}
                                     onChange={e => setEmailParent(e.target.value)}
                                     className="w-full text-gray-700 p-2 bg-transparent focus:outline-none focus:border-amber-500 transition-all duration-300 placeholder-amber-400/70"
@@ -219,8 +222,8 @@ export default function RegisterForm() {
                     )}
 
                     {message && (
-                        <div className={`${message.includes('réussie') ? 'bg-green-50 border-green-500 text-green-700' : 'bg-orange-50 border-orange-500 text-orange-700'} border-r-4 p-4 rounded-lg animate-fadeInUp flex items-center`}>
-                            <span className="mr-2 text-xl">{message.includes('réussie') ? '✅' : '⚠️'}</span>
+                        <div className={`${message.includes(t('register.success')) ? 'bg-green-50 border-green-500 text-green-700' : 'bg-orange-50 border-orange-500 text-orange-700'} border-r-4 p-4 rounded-lg animate-fadeInUp flex items-center`}>
+                            <span className="mr-2 text-xl">{message.includes(t('register.success')) ? '✅' : '⚠️'}</span>
                             <p className="text-sm font-medium">{message}</p>
                         </div>
                     )}
@@ -233,7 +236,7 @@ export default function RegisterForm() {
                                 hover:scale-105 shadow-md border border-orange-200 animate-fadeInUp animate-delay-300 flex items-center justify-center"
                         >
                             <span className="mr-2">🚀</span>
-                            S'inscrire
+                            {t('register.buttons.register')}
                         </button>
                         <Link
                             href="/login"
@@ -242,7 +245,7 @@ export default function RegisterForm() {
                                 hover:scale-105 shadow-md border border-gray-200 text-center animate-fadeInUp animate-delay-300 flex items-center justify-center"
                         >
                             <span className="mr-2">🔑</span>
-                            Connexion
+                            {t('register.buttons.login')}
                         </Link>
                     </div>
                 </form>

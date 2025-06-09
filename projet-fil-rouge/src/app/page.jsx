@@ -3,7 +3,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import soundManager from '../utils/SoundManager';
+import LanguageSwitcher from './components/LanguageSwitcher'; // Chemin corrigé
+import '../i18n/client'; // Importation de la configuration i18n client
 
 // Composant utilitaire pour animer à l'entrée du viewport
 function Reveal({ children, className = '', animation = 'animate-fadeInUp', delay = 0 }) {
@@ -31,6 +34,7 @@ function Reveal({ children, className = '', animation = 'animate-fadeInUp', dela
 
 export default function Home() {
   const [isSoundPlaying, setIsSoundPlaying] = useState(true);
+  const { t } = useTranslation();
 
   // Gérer le son d'ambiance
   useEffect(() => {
@@ -66,14 +70,16 @@ export default function Home() {
     soundManager.play('click', { volume: 0.5 });
   };
 
-
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-orange-50 to-amber-100">
+      {/* Language Switcher */}
+      <LanguageSwitcher />
+
       {/* Bouton de contrôle du son */}
       <button
         onClick={toggleSound}
-        className="fixed top-24 right-6 z-10 bg-white/80 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
-        aria-label={isSoundPlaying ? "Désactiver le son" : "Activer le son"}
+        className="fixed top-30 right-6 z-10 bg-white/80  hover:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
+        aria-label={isSoundPlaying ? t('soundControl.turnOff') : t('soundControl.turnOn')}
       >
         {isSoundPlaying ? (
           <svg className="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,8 +110,8 @@ export default function Home() {
       <div className="relative min-h-screen w-full flex flex-col items-center justify-center py-20 px-4">
         <Reveal animation="animate-fadeInUp" delay={0}>
           <h1 className="text-5xl md:text-6xl font-bold text-center text-gray-800 mb-6">
-            Bienvenue aux<br />
-            <span className="text-orange-600">Petits Aventuriers</span>
+            {t('welcome')}<br />
+            <span className="text-orange-600">{t('littleAdventurers')}</span>
           </h1>
         </Reveal>
 
@@ -116,22 +122,24 @@ export default function Home() {
             <div className="bg-white rounded-2xl p-6 border-4 border-orange-200 shadow-lg mb-6 relative">
               <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-6 h-6 bg-white border-r-4 border-b-4 border-orange-200"></div>
               <h2 className="text-center text-2xl font-bold text-orange-600 mb-2">
-                Salut petit aventurier ! 👋
+                {t('heroGreeting')}
               </h2>
               <p className="text-center text-gray-700">
-                Je m'appelle Sebi ! Je serai ton guide tout au long de ton aventure !
+                {t('heroIntro')}
               </p>
               <p className="text-center text-orange-500 font-medium mt-2">
-                Clique sur moi en bas à droite quand tu as besoin d'aide 😉 !
+                {t('heroHelp')}
               </p>
             </div>
 
             {/* Image de Sebi plus grande sur la page d'accueil */}
             <div className="w-52 h-52 mx-auto relative animate-bounce-slow">
               <Image
-                src="/images/SEBI.png"
+                src="/images/sebi.webp"
                 alt="Sebi la gazelle"
                 fill
+                priority={true}
+                sizes="(max-width: 768px) 100vw, 208px"
                 className="object-contain"
               />
             </div>
@@ -147,7 +155,7 @@ export default function Home() {
                      hover:shadow-orange-200/50 hover:shadow-xl transition-all duration-300
                      animate-pulse-subtle"
           >
-            <span>Commencer l'aventure !</span>
+            <span>{t('startAdventure')}</span>
             <svg className="w-7 h-7 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
             </svg>
@@ -161,7 +169,7 @@ export default function Home() {
       <div className="relative w-full bg-orange-50 py-20 px-4">
         <Reveal animation="animate-fadeInUp" delay={150}>
           <h2 className="text-4xl md:text-5xl font-bold text-center text-gray-800 mb-12">
-            Tes compagnons d'aventure
+            {t('companions')}
           </h2>
         </Reveal>
 
@@ -177,7 +185,7 @@ export default function Home() {
                   <div className="relative w-40 h-40 mb-6 transform hover:scale-110 transition-all duration-300 hover:animate-bounce">
                     <div className="absolute -inset-4 bg-orange-300/20 rounded-full blur-xl"></div>
                     <Image
-                      src="/images/SEBI.png"
+                      src="/images/sebi.webp"
                       alt="Sebi la gazelle"
                       fill
                       className="object-contain"
@@ -186,11 +194,10 @@ export default function Home() {
 
                   <div>
                     <h2 className="text-2xl font-bold text-orange-600 mb-3 text-center">
-                      Sebi la gazelle
+                      {t('sebi.name')}
                     </h2>
                     <p className="text-lg text-gray-700 text-center mb-6">
-                      Salut ! Je suis Sebi, une gazelle aventurière qui adore explorer la savane.
-                      Je suis rapide comme le vent !
+                      {t('sebi.description')}
                     </p>
                   </div>
 
@@ -200,7 +207,7 @@ export default function Home() {
                              px-8 py-4 rounded-full font-bold shadow-lg flex items-center space-x-3
                              hover:shadow-orange-200/50 hover:shadow-xl transition-all duration-300"
                   >
-                    <span>Jouer avec Sebi</span>
+                    <span>{t('sebi.cta')}</span>
                     <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
                     </svg>
@@ -221,7 +228,7 @@ export default function Home() {
                   <div className="relative w-40 h-40 mb-6 transform hover:scale-110 transition-all duration-300 hover:rotate-3">
                     <div className="absolute -inset-4 bg-amber-300/20 rounded-full blur-xl"></div>
                     <Image
-                      src="/images/james.png"
+                      src="/images/owl.webp"
                       alt="James le hibou"
                       fill
                       className="object-contain"
@@ -230,11 +237,10 @@ export default function Home() {
 
                   <div>
                     <h2 className="text-2xl font-bold text-amber-600 mb-3 text-center">
-                      James le hibou
+                      {t('james.name')}
                     </h2>
                     <p className="text-lg text-gray-700 text-center mb-6">
-                      Bonjour ! Je suis James, un hibou qui adore les mathématiques.
-                      Avec moi, tu découvriras que les maths peuvent être amusantes !
+                      {t('james.description')}
                     </p>
                   </div>
 
@@ -244,7 +250,7 @@ export default function Home() {
                              px-8 py-4 rounded-full font-bold shadow-lg flex items-center space-x-3
                              hover:shadow-amber-200/50 hover:shadow-xl transition-all duration-300"
                   >
-                    <span>Jouer avec James</span>
+                    <span>{t('james.cta')}</span>
                     <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
                     </svg>
