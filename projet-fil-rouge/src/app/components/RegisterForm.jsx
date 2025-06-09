@@ -62,7 +62,7 @@ export default function RegisterForm() {
 
             // Redirection après délai
             setTimeout(() => {
-                window.location.href = '/login';
+                window.location.href = '/';
             }, 2000);
         } catch (error) {
             console.log("Erreur:", error);

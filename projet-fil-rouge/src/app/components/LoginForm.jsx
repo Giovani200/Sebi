@@ -17,39 +17,47 @@ export default function LoginForm() {
         e.preventDefault();
         setMessage('');
 
-        const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password }),
-            headers: { 'Content-Type': 'application/json' },
-        });
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password }),
+                headers: { 'Content-Type': 'application/json' },
+            });
 
-        const data = await res.json();
-        if (!res.ok) return setMessage(data.message);
+            // Vérifier si la réponse est vide
+            const text = await res.text();
+            const data = text.length ? JSON.parse(text) : {};
 
-        setMessage('Connexion réussie !');
+            if (!res.ok) return setMessage(data.message || 'Erreur de connexion');
 
-        // Déclencher l'événement pour afficher la notification
-        window.dispatchEvent(new CustomEvent('showNotification', { 
-            detail: { message: 'Connexion réussie!', type: 'success' } 
-        }));
-        
-        // Rediriger vers la page d'accueil
-        router.push('/');
+            setMessage('Connexion réussie !');
+
+            // Déclencher l'événement pour afficher la notification
+            window.dispatchEvent(new CustomEvent('showNotification', {
+                detail: { message: 'Connexion réussie!', type: 'success' }
+            }));
+
+            // Rediriger vers la page d'accueil
+            router.push('/');
+        } catch (error) {
+            console.error('Erreur de connexion:', error);
+            setMessage('Erreur lors de la connexion. Veuillez réessayer.');
+        }
     };
 
-     return (
+    return (
         <div className="min-h-screen w-full bg-gradient-to-bl from-[#fdf2dd] to-amber-50 py-16 pb-0 px-4 flex items-center justify-center relative overflow-auto">
             {/* Éléments décoratifs variés */}
             <div className="absolute top-[12%] left-[15%] w-32 h-16 bg-orange-100/40 rounded-bl-3xl transform rotate-12"></div>
             <div className="absolute bottom-[25%] right-[12%] w-28 h-28 bg-amber-100/30 rounded-tr-3xl rounded-bl-3xl"></div>
             <div className="absolute top-[40%] left-[30%] w-20 h-20 bg-yellow-50/30 rounded-full transform -rotate-6"></div>
-            
+
             {/* Étoiles avec animations différentes */}
             <div className="absolute top-[25%] right-[35%] text-3xl animate-pulse opacity-60">✨</div>
             <div className="absolute bottom-[30%] left-[18%] text-4xl animate-ping animation-delay-1000 opacity-40">⭐</div>
             <div className="absolute top-[15%] right-[20%] text-2xl animate-spin-slow opacity-50">⭐</div>
             <div className="absolute bottom-[15%] left-[40%] text-xl animate-bounce opacity-40">✨</div>
-            
+
             <div className="bg-white/95 p-10 rounded-tl-3xl rounded-br-3xl shadow-lg w-full max-w-md relative border-2 border-amber-200 animate-scaleIn">
                 <div className="absolute -top-10 -right-5 w-24 h-24">
                     <Image
@@ -67,7 +75,7 @@ export default function LoginForm() {
                     </h2>
                     <p className="text-center text-orange-500 text-sm mt-1">{t('login.subtitle')}</p>
                 </div>
-                
+
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div className="animate-fadeInUp animate-delay-100 bg-orange-50/70 rounded-xl p-4">
                         <label className="text-sm text-orange-700 font-medium mb-1 block">
@@ -85,7 +93,7 @@ export default function LoginForm() {
                             />
                         </div>
                     </div>
-                    
+
                     <div className="animate-fadeInUp animate-delay-200 bg-orange-50/70 rounded-xl p-4">
                         <label className="text-sm text-orange-700 font-medium mb-1 block">
                             {t('login.fields.password')}
@@ -111,9 +119,9 @@ export default function LoginForm() {
                             </div>
                         </div>
                     )}
-                    
-                    <button 
-                        type="submit" 
+
+                    <button
+                        type="submit"
                         className="w-full bg-gradient-to-br from-orange-300 to-amber-400 hover:from-orange-400 hover:to-amber-500 
                                    text-white font-bold py-4 px-6 rounded-tl-xl rounded-br-xl transition-all duration-300 
                                    hover:scale-[1.03] shadow-md animate-fadeInUp animate-delay-300 relative overflow-hidden"
@@ -125,25 +133,25 @@ export default function LoginForm() {
                             {t('login.buttons.login')}
                         </span>
                     </button>
-                    
+
                     <div className="mt-6 space-y-3 animate-fadeInUp animate-delay-300">
                         <div className="flex items-center justify-center space-x-2">
                             <div className="h-px bg-orange-200 flex-1"></div>
                             <span className="text-orange-400 text-sm">{t('login.or')}</span>
                             <div className="h-px bg-orange-200 flex-1"></div>
                         </div>
-                        
-                        <Link 
-                            href="/register" 
+
+                        <Link
+                            href="/register"
                             className="block text-center bg-gradient-to-r from-amber-50 to-orange-50 hover:from-amber-100 hover:to-orange-100
                                       text-orange-600 font-medium py-3 px-6 rounded-tl-xl rounded-br-xl transition-all duration-300
                                       hover:scale-[1.02] border border-orange-200"
                         >
                             {t('login.buttons.register')}
                         </Link>
-                        
-                        <Link 
-                            href="/forgot-password" 
+
+                        <Link
+                            href="/forgot-password"
                             className="block text-center text-amber-600 hover:text-amber-800 transition-colors text-sm mt-4"
                         >
                             <span className="border-b border-dashed border-amber-300">{t('login.forgotPassword')}</span>
