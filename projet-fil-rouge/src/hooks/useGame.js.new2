@@ -1,0 +1,548 @@
+// filepath: /Users/jean-davidzamblezie/Desktop/FIL_ROUGE/Sebi/projet-fil-rouge/src/hooks/useGame.js
+import { useRef, useEffect, useState, useCallback } from "react";
+
+// Définition des constantes sans type - sera remplacé par les valeurs calculées 
+// mais avec des valeurs par défaut plus sensées pour éviter le positionnement incorrect
+const GAZELLE_INITIAL = { x: 100, y: 100, w: 80, h: 80, vy: 0, jumping: false };
+
+export default function useGame(canvasRef) {
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [nightMode, setNightMode] = useState(false);
+  // Nouvel état pour contrôler si le jeu est prêt à démarrer
+  const [isGameReady, setIsGameReady] = useState(false);
+  // Définir DEBUG_HITBOX à false après avoir terminé le débogage
+  const DEBUG_HITBOX = false;
+  
+  const state = useRef({
+    gazelle: { ...GAZELLE_INITIAL },
+    obstacles: [],
+    speed: 4,
+    gravity: 1.2,
+    jumpPower: -16,
+    frame: 0,
+    running: true,
+  });
+
+  // Préchargement des images décor, fond, personnage
+  const imagesRef = useRef({});
+  useEffect(() => {
+    const images = {};
+    const toLoad = [
+      { key: 'bg', src: '/foret-bg.png' },
+      { key: 'gazelle', src: '/gazelle.png' },
+      { key: 'bush', src: '/bush.png' }, // ajout bush
+    ];
+    toLoad.forEach(({key, src}) => {
+      const img = new window.Image();
+      img.src = src;
+      images[key] = img;
+    });
+    imagesRef.current = images;
+  }, []);
+
+  // Load high score
+  useEffect(() => {
+    setHighScore(Number(localStorage.getItem("gazelle-highscore") || 0));
+  }, []);
+
+  // Main game loop
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let animation;
+
+    // Ajout d'une variable pour le temps précédent
+    let lastTime = performance.now();
+    let distance = 0;
+
+    // Fonction pour calculer les positions en fonction de la taille du canvas
+    // Nous utilisons cette fonction pour que les calculs soient cohérents partout
+    function getPositions() {
+      return {
+        groundHeight: canvas.height * 0.15, // 15% de la hauteur pour le sol (réduit pour remonter)
+        floorY: canvas.height - (canvas.height * 0.15), // Position Y du sol
+        playerHeight: canvas.height * 0.18, // 18% pour la hauteur du joueur
+        playerWidth: canvas.height * 0.18 * 1.5, // Largeur proportionnelle
+        playerY: canvas.height - (canvas.height * 0.15) - (canvas.height * 0.18), // Y de la gazelle
+        playerX: canvas.width * 0.2, // X de la gazelle
+      };
+    }
+
+    // Calculer les positions initiales
+    const pos = getPositions();
+    
+    // Ajustement des paramètres physiques selon la taille du canvas
+    state.current.jumpPower = -canvas.height * 0.030; // Force de saut proportionnelle (légèrement réduite)
+    state.current.gravity = canvas.height * 0.0018;   // Gravité proportionnelle
+    state.current.speed = Math.max(4, canvas.width * 0.005); // Vitesse adaptée à la taille de l'écran
+
+    function drawPlayer(g, now) {
+      const gazelleImg = imagesRef.current.gazelle;
+      if (!ctx || !canvas) return;
+      if (gazelleImg && gazelleImg.complete) {
+        const aspect = gazelleImg.width / gazelleImg.height || 1;
+        const positions = getPositions();
+        const targetH = positions.playerHeight;
+        const targetW = targetH * aspect;
+        
+        // Animation légère de mouvement des pattes (oscillation verticale)
+        const runningOffset = g.jumping ? 0 : Math.sin(now / 100) * 5;
+        
+        ctx.drawImage(gazelleImg, g.x, g.y + runningOffset, targetW, targetH);
+        
+        // Optionnel: visualisation de la hitbox (commenter en production)
+        /*
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 2;
+        const hitboxW = targetW * 0.6;
+        const hitboxH = targetH * 0.7;
+        const hitboxX = g.x + targetW * 0.2;
+        const hitboxY = g.y + targetH * 0.15;
+        ctx.strokeRect(hitboxX, hitboxY, hitboxW, hitboxH);
+        */
+      } else {
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(g.x + g.w / 2, g.y + g.h / 2, g.w / 2, g.h / 2.5, 0, 0, 2 * Math.PI);
+        ctx.fillStyle = nightMode ? '#fbbf24' : '#f59e42';
+        ctx.shadowColor = nightMode ? '#fff' : '#fbbf24';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      }
+    }
+
+    function drawObstacle(o) {
+      if (!ctx) return;
+      ctx.save();
+      // Tous les obstacles sont maintenant des buissons
+      const bushImg = imagesRef.current.bush;
+      if (bushImg && bushImg.complete) {
+        // Dessiner l'image avec une belle taille
+        ctx.drawImage(bushImg, o.x, o.y, o.w, o.h);
+        
+        // Ajouter une ombre plus prononcée pour un meilleur effet visuel
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 4;
+        ctx.shadowOffsetY = 5;
+        
+        // Optionnel: visualisation de l'aire de collision (commenter en production)
+        /*
+        ctx.strokeStyle = "blue";
+        ctx.lineWidth = 2;
+        const hitboxW = o.w * 0.7;
+        const hitboxH = o.h * 0.4;
+        const hitboxX = o.x + o.w * 0.15;
+        const hitboxY = o.y + o.h * 0.6;
+        ctx.strokeRect(hitboxX, hitboxY, hitboxW, hitboxH);
+        */
+      } else {
+        // Fallback si l'image n'est pas chargée
+        ctx.fillStyle = '#228B22';
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+      }
+      ctx.restore();
+    }
+
+    function drawBackground() {
+      if (!canvas || !ctx) return;
+      
+      // Affiche l'image de fond si chargée, sinon fallback dégradé
+      const bgImg = imagesRef.current.bg;
+      if (bgImg && bgImg.complete) {
+        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+      } else {
+        // Dégradé de fond forêt
+        const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        grad.addColorStop(0, nightMode ? '#183a1d' : '#4ade80');
+        grad.addColorStop(0.5, nightMode ? '#22543d' : '#166534');
+        grad.addColorStop(1, nightMode ? '#0f172a' : '#052e16');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function drawDecor() {
+      // Désactivé : on laisse le fond illustré uniquement
+    }
+
+    function drawGround() {
+      // Désactivé : le sol est déjà dans l'image de fond
+    }
+
+    // Fonction d'aide pour détecter les collisions entre deux rectangles
+    function detectCollision(rect1, rect2, tolerance = 0.5) {
+      // Cette fonction est maintenant plus stricte, avec une tolérance de 0.5 (au lieu de 0.7)
+      // Plus la tolérance est basse, plus les hitbox sont proches de leur taille réelle
+      const adjustedRect1 = {
+        x: rect1.x + rect1.w * (1 - tolerance) / 2,
+        y: rect1.y + rect1.h * (1 - tolerance) / 2,
+        w: rect1.w * tolerance,
+        h: rect1.h * tolerance
+      };
+      
+      const adjustedRect2 = {
+        x: rect2.x + rect2.w * (1 - tolerance) / 2,
+        y: rect2.y + rect2.h * (1 - tolerance) / 2,
+        w: rect2.w * tolerance,
+        h: rect2.h * tolerance
+      };
+      
+      // Algorithme standard de détection de collision entre deux rectangles
+      return (
+        adjustedRect1.x < adjustedRect2.x + adjustedRect2.w &&
+        adjustedRect1.x + adjustedRect1.w > adjustedRect2.x &&
+        adjustedRect1.y < adjustedRect2.y + adjustedRect2.h &&
+        adjustedRect1.y + adjustedRect1.h > adjustedRect2.y
+      );
+    }
+
+    function resetGazelle() {
+      // Position initiale correcte avec tous les paramètres calculés
+      // Vérifier que les valeurs sont valides avant de les utiliser
+      if (canvas && canvas.width > 0 && canvas.height > 0) {
+        const pos = getPositions();
+        
+        state.current.gazelle = { 
+          x: pos.playerX, 
+          y: pos.playerY, 
+          w: pos.playerWidth, 
+          h: pos.playerHeight, 
+          vy: 0, 
+          jumping: false 
+        };
+        
+        // Mettre à jour également les paramètres physiques
+        state.current.jumpPower = -canvas.height * 0.030;
+        state.current.gravity = canvas.height * 0.0018;
+        state.current.speed = Math.max(4, canvas.width * 0.005);
+      } else {
+        // Utiliser des valeurs par défaut si le canvas n'est pas correctement dimensionné
+        console.warn("Canvas non dimensionné correctement lors de resetGazelle()");
+        state.current.gazelle = { ...GAZELLE_INITIAL };
+      }
+    }
+
+    function resetObstacles() {
+      state.current.obstacles = [];
+    }
+
+    function resetGame() {
+      setScore(0);
+      setIsGameOver(false);
+      setNightMode(false);
+      state.current = {
+        ...state.current,
+        // Utiliser resetGazelle() au lieu de GAZELLE pour positionner correctement
+        obstacles: [],
+        speed: Math.max(4, canvas.width * 0.005), // Utiliser la vitesse adaptée à l'écran
+        frame: 0,
+        running: true,
+      };
+      resetGazelle(); // Appeler resetGazelle() pour positionner correctement
+      lastTime = performance.now();
+      distance = 0;
+      loop();
+    }
+
+    function loop(now = performance.now()) {
+      if (!state.current.running || !canvas || !ctx) return;
+      const delta = (now - lastTime) / 1000; // en secondes
+      lastTime = now;
+
+      // Animation plus fluide : vitesse dépend du temps écoulé
+      const baseSpeed = nightMode ? 7 : 5;
+      state.current.speed = baseSpeed + Math.min(Math.floor(distance / 300), 5); // accélère progressivement
+
+      // Récupérer les positions calculées pour cette frame
+      const pos = getPositions();
+
+      drawBackground();
+      drawDecor();
+      drawGround();
+
+      // Joueur (gazelle) - animation de saut
+      let g = state.current.gazelle;
+      
+      // Appliquer la gravité et le mouvement vertical
+      g.y += g.vy;
+      g.vy += state.current.gravity;
+      
+      // Vérifier collision avec le sol - utiliser la position calculée dynamiquement
+      if (g.y >= pos.playerY) {
+        g.y = pos.playerY;
+        g.vy = 0;
+        g.jumping = false;
+      }
+      
+      // Dessin de la gazelle à la bonne position
+      drawPlayer({ ...g, y: g.y }, now);
+
+      // Obstacles
+      state.current.obstacles.forEach((o) => {
+        o.x -= state.current.speed * delta * 60;
+        drawObstacle(o);
+      });
+      // Remove off-screen
+      state.current.obstacles = state.current.obstacles.filter((o) => o.x + o.w > 0);
+
+      // Génération obstacles
+      if (state.current.frame % Math.max(60, 120 - Math.floor(distance / 100)) === 0) {
+        // Tous les obstacles sont maintenant des buissons
+        const bushHeight = 120;
+        
+        // Vérifier qu'il n'y a pas d'obstacle trop proche du bord droit
+        const lastObstacle = state.current.obstacles[state.current.obstacles.length - 1];
+        const minDistanceBetweenObstacles = canvas.width * 0.5; // 50% de la largeur
+        
+        // N'ajouter que si le dernier obstacle est suffisamment éloigné ou s'il n'y a pas d'obstacle
+        if (!lastObstacle || lastObstacle.x < canvas.width - minDistanceBetweenObstacles) {
+          state.current.obstacles.push({
+            x: canvas.width,
+            y: pos.floorY - bushHeight - 10, // Positionné sur le sol avec un décalage de 10px
+            w: 120,
+            h: bushHeight,
+            type: "bush",
+          });
+        }
+      }
+
+      // Collision - ajuster pour utiliser les dimensions réelles de la gazelle
+      state.current.obstacles.forEach((o) => {
+        // Vérifier que l'obstacle est vraiment dans la zone jouable (pas trop loin sur les côtés)
+        if (o.x > canvas.width || o.x + o.w < 0) return;
+        
+        const pos = getPositions();
+        
+        // Hitbox de la gazelle - ajustée pour être plus précise
+        const hitboxW = pos.playerWidth * 0.75; // Augmenté pour éviter les traversées
+        const hitboxH = pos.playerHeight * 0.8; // Augmenté pour couvrir plus de la gazelle
+        const hitboxX = g.x + pos.playerWidth * 0.125; // Centré
+        const hitboxY = g.y + pos.playerHeight * 0.1; // Plus haut pour éviter les traversées
+        
+        // Hitbox ajustée pour les buissons - adaptée à la forme visuelle mais plus grande
+        const bushHitboxW = o.w * 0.8; // Augmenté pour être plus détectable
+        const bushHitboxH = o.h * 0.6; // Augmenté pour être plus haut (éviter traversée)
+        const bushHitboxX = o.x + o.w * 0.1; // Centré davantage
+        const bushHitboxY = o.y + o.h * 0.4; // Moins bas pour intercepter la gazelle
+        
+        // Définir les centres des objets pour le calcul de distance et le débogage
+        const gazelleCenter = { x: hitboxX + hitboxW / 2, y: hitboxY + hitboxH / 2 };
+        const bushCenter = { x: bushHitboxX + bushHitboxW / 2, y: bushHitboxY + bushHitboxH / 2 };
+        
+        // Distance approximative (sans racine carrée pour optimisation)
+        const distanceSquared = 
+          Math.pow(gazelleCenter.x - bushCenter.x, 2) + 
+          Math.pow(gazelleCenter.y - bushCenter.y, 2);
+        
+        // Seuil de distance pour vérifier la collision (somme des rayons au carré)
+        const collisionThreshold = 
+          Math.pow((hitboxW + bushHitboxW) / 2, 2) + 
+          Math.pow((hitboxH + bushHitboxH) / 2, 2);
+        
+        // Activer la visualisation des hitbox pour le débogage uniquement après avoir défini toutes les variables nécessaires
+        if (DEBUG_HITBOX && ctx) {
+          // Dessiner la hitbox de la gazelle
+          ctx.save();
+          ctx.strokeStyle = "rgba(255,0,0,0.7)";
+          ctx.fillStyle = "rgba(255,0,0,0.2)";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(hitboxX, hitboxY, hitboxW, hitboxH);
+          ctx.fillRect(hitboxX, hitboxY, hitboxW, hitboxH);
+          
+          // Dessiner la hitbox du buisson
+          ctx.strokeStyle = "rgba(0,0,255,0.7)";
+          ctx.fillStyle = "rgba(0,0,255,0.2)";
+          ctx.strokeRect(bushHitboxX, bushHitboxY, bushHitboxW, bushHitboxH);
+          ctx.fillRect(bushHitboxX, bushHitboxY, bushHitboxW, bushHitboxH);
+          
+          // Ligne entre les centres pour visualiser la distance
+          ctx.beginPath();
+          ctx.moveTo(gazelleCenter.x, gazelleCenter.y);
+          ctx.lineTo(bushCenter.x, bushCenter.y);
+          ctx.strokeStyle = distanceSquared < collisionThreshold * 2.5 ? "rgba(255,0,0,0.5)" : "rgba(0,255,0,0.5)";
+          ctx.stroke();
+          ctx.restore();
+        }
+        
+        // Vérifier d'abord la distance avant d'utiliser la détection précise
+        // Coefficient augmenté à 2.5 pour être plus sensible aux collisions
+        if (distanceSquared < collisionThreshold * 2.5) {
+          // Maintenant, vérifier la collision précise seulement si les objets sont proches
+          if (
+            detectCollision(
+              { x: hitboxX, y: hitboxY, w: hitboxW, h: hitboxH },
+              { x: bushHitboxX, y: bushHitboxY, w: bushHitboxW, h: bushHitboxH }
+            )
+          ) {
+            // Animation de collision
+            if (ctx) {
+              // Effet flash
+              ctx.save();
+              ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.restore();
+              
+              // Petit effet de secousse (sera visible pendant une seule frame)
+              canvas.style.transform = "translateX(5px)";
+              setTimeout(() => {
+                if (canvas) canvas.style.transform = "translateX(0)";
+              }, 50);
+            }
+            
+            state.current.running = false;
+            setIsGameOver(true);
+            if (distance > highScore) {
+              setHighScore(Math.floor(distance));
+              localStorage.setItem("gazelle-highscore", String(Math.floor(distance)));
+            }
+          }
+        }
+      });
+
+      // Nouveau système de score : distance parcourue (plus réaliste)
+      if (!isGameOver) {
+        distance += state.current.speed * delta;
+        setScore(Math.floor(distance));
+        
+        // Augmenter la vitesse progressivement pour augmenter la difficulté
+        if (distance > 0 && distance % 200 < 1) {
+          // Augmenter la vitesse tous les 200 points, jusqu'à une limite raisonnable
+          state.current.speed = Math.min(12, state.current.speed + 0.2);
+        }
+        
+        if (distance >= 500) setNightMode(true);
+      }
+
+      state.current.frame++;
+      if (state.current.running) animation = requestAnimationFrame(loop);
+    }
+
+    if (!isGameOver && isGameReady) {
+      // Assurez-vous que le canvas est bien défini et que ses dimensions sont correctes
+      if (canvas && canvas.width > 0 && canvas.height > 0) {
+        resetGazelle();
+        resetObstacles();
+        state.current.running = true;
+        lastTime = performance.now();
+        distance = 0;
+        loop();
+      } else {
+        // Si le canvas n'est pas prêt, attendez un court instant et réessayez
+        setTimeout(() => {
+          if (canvasRef.current) {
+            const canvas = canvasRef.current;
+            resetGazelle();
+            resetObstacles();
+            state.current.running = true;
+            lastTime = performance.now();
+            distance = 0;
+            loop();
+          }
+        }, 100);
+      }
+    }
+
+    return () => {
+      state.current.running = false;
+      cancelAnimationFrame(animation);
+    };
+    // eslint-disable-next-line
+  }, [canvasRef, isGameOver, nightMode, isGameReady]);
+
+  // Jump handler
+  function jump() {
+    if (isGameOver) return;
+    const g = state.current.gazelle;
+    if (!g.jumping) {
+      g.vy = state.current.jumpPower;
+      g.jumping = true;
+    }
+  }
+
+  // Keyboard
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.code === "Space") jump();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+    // eslint-disable-next-line
+  }, [isGameOver]);
+
+  // Reset function wrapped in useCallback to prevent infinite loops
+  const reset = useCallback(function resetGame() {
+    setIsGameOver(false);
+    setScore(0);
+    setNightMode(false);
+    setIsGameReady(true);
+    
+    // S'assurer que le canvas est accessible et correctement dimensionné
+    const canvas = canvasRef.current;
+    if (canvas && canvas.width > 0 && canvas.height > 0) {
+      // Réinitialiser avec les bonnes valeurs de position et vitesse
+      // On utilise une fonction pour calculer les positions dynamiquement
+      function getPos() {
+        return {
+          groundHeight: canvas.height * 0.15,
+          playerHeight: canvas.height * 0.18,
+          playerWidth: canvas.height * 0.18 * 1.5,
+          floorY: canvas.height - (canvas.height * 0.15),
+          playerY: canvas.height - (canvas.height * 0.15) - (canvas.height * 0.18),
+          playerX: canvas.width * 0.2
+        };
+      }
+      
+      const pos = getPos();
+      
+      // Mettre à jour les propriétés de la gazelle avec les bonnes dimensions
+      state.current.gazelle = { 
+        x: pos.playerX, 
+        y: pos.playerY, 
+        w: pos.playerWidth, 
+        h: pos.playerHeight, 
+        vy: 0, 
+        jumping: false 
+      };
+      
+      // Réinitialiser les paramètres physiques
+      state.current.jumpPower = -canvas.height * 0.030;
+      state.current.gravity = canvas.height * 0.0018;
+      state.current.speed = Math.max(4, canvas.width * 0.005);
+      
+      // Réinitialiser les obstacles
+      state.current.obstacles = [];
+      state.current.frame = 0;
+      state.current.running = true;
+      
+      // Forcer un rendu immédiat pour mettre à jour la position
+      requestAnimationFrame(() => {
+        if (state.current.running) {
+          state.current.gazelle.x = pos.playerX;
+          state.current.gazelle.y = pos.playerY;
+        }
+      });
+    } else {
+      // Si le canvas n'est pas prêt, réessayer après un court délai
+      setTimeout(() => reset(), 100);
+    }
+  }, [canvasRef]);
+
+  return {
+    state,
+    score,
+    highScore,
+    isGameOver,
+    isGameReady,
+    setIsGameReady,
+    jump,
+    reset,
+    nightMode,
+  };
+}

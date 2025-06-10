@@ -37,11 +37,15 @@ export const POST = async (req) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Création utilisateur
+
+const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${firstName}-${lastName}&backgroundColor=ffdfbf,ffd5dc,d1d4f9,c0aede,b6e3f4`;
+
     const newUser = await User.create({
         firstName,
         lastName,
         age,
         email,
+        avatar: avatarUrl,
         password: hashedPassword,
         parentEmail: age < 13 ? parentEmail : null,
         isParentApproved: age < 13 ? false : true, // attente d'approbation
