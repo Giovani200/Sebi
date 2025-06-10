@@ -1,5 +1,7 @@
-@import "tailwindcss";
-
+/* Par ces directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -60,7 +62,6 @@ body {
 
 /* @tailwind base; */
 /* @tailwind components; */
-@tailwind utilities;
 
 @keyframes shimmer {
   0% {
