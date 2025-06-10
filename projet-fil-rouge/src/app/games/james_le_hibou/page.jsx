@@ -309,7 +309,7 @@ export default function JamesLeHibouGame() {
 
   // Rendu des différentes parties du jeu
   const renderStartScreen = () => (
-    <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center border-4 border-blue-400">
+    <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center border-4 border-blue-400 mt-24">
       <div className="mb-4 animate-bounce-slow">
         <Image src="/images/owl.webp" alt="James le hibou" width={180} height={180} className="drop-shadow-xl" />
       </div>
@@ -344,9 +344,8 @@ export default function JamesLeHibouGame() {
       </div>
     </div>
   );
-
   const renderTutorialScreen = () => (
-    <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center border-4 border-yellow-400">
+    <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center border-4 border-yellow-400 mt-24">
       <div className="mb-6">
         <Image 
           src={TUTORIAL_STEPS[tutorialStep].image} 
@@ -376,9 +375,8 @@ export default function JamesLeHibouGame() {
       </div>
     </div>
   );
-
   const renderLevelSelectScreen = () => (
-    <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center border-4 border-purple-400">
+    <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 flex flex-col items-center border-4 border-purple-400 mt-24">
       <div className="mb-6">
         <Image src="/images/owl.webp" alt="James le hibou" width={150} height={150} className="drop-shadow-xl" />
       </div>
@@ -410,9 +408,8 @@ export default function JamesLeHibouGame() {
       </button>
     </div>
   );
-
   const renderGameScreen = () => (
-    <div className="flex flex-col md:flex-row w-full max-w-4xl gap-6 items-center">
+    <div className="flex flex-col md:flex-row w-full max-w-4xl gap-6 items-center mt-24">
       {/* Zone de jeu */}
       <div className="w-full md:w-2/3 bg-white rounded-3xl shadow-xl p-6 flex flex-col items-center animate-fadeInUp border-4 border-blue-400">
         <div className="flex justify-between w-full mb-4">
