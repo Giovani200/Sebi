@@ -124,7 +124,7 @@ export default function Home() {
               <h2 className="text-center text-2xl font-bold text-orange-600 mb-2">
                 {t('heroGreeting')}
               </h2>
-              <p className="text-center text-gray-700">
+              <p className="text-center text-gray-750">
                 {t('heroIntro')}
               </p>
               <p className="text-center text-orange-500 font-medium mt-2">
