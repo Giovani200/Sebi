@@ -71,14 +71,14 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-orange-50 pt-3 to-amber-100">
+    <div className="min-h-screen w-full overflow-x-hidden bg-gradient-to-b from-orange-50 pt-6 to-amber-100">
       {/* Language Switcher */}
       <LanguageSwitcher />
 
       {/* Bouton de contrôle du son */}
       <button
         onClick={toggleSound}
-        className="fixed top-30 right-6 pt-6 z-10 bg-white/80  hover:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
+        className="fixed top-30 right-10 pt-15 z-10 bg-white/80  hover:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
         aria-label={isSoundPlaying ? t('soundControl.turnOff') : t('soundControl.turnOn')}
       >
         {isSoundPlaying ? (
