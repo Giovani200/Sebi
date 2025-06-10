@@ -75,10 +75,9 @@ export default function Home() {
       {/* Language Switcher */}
       <LanguageSwitcher />
 
-      {/* Bouton de contrôle du son */}
-      <button
+      {/* Bouton de contrôle du son */}      <button
         onClick={toggleSound}
-        className="fixed top-30 right-10 pt-15 z-10 bg-white/80  hover:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
+        className="fixed top-32 right-6 z-10 bg-white/80 hover:bg-black/90 backdrop-blur-sm p-3 rounded-full shadow-md hover:shadow-lg transition-all"
         aria-label={isSoundPlaying ? t('soundControl.turnOff') : t('soundControl.turnOn')}
       >
         {isSoundPlaying ? (
