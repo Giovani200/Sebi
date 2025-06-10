@@ -15,6 +15,7 @@ export default function LanguageSwitcher() {
     <button
       onClick={handleChangeLanguage}
       className="fixed top-45 right-6 z-10 bg-white/80 hover:bg-black/90 backdrop-blur-sm p-2 rounded-full pt-16 shadow-md hover:shadow-lg transition-all"
+
       aria-label={t('switchLanguage')}
       title={t('switchLanguage')}
     >
