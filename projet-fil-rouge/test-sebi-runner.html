@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sebi Runner</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1a2e18;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+        canvas {
+            background: linear-gradient(to bottom, #4ade80, #166534, #052e16);
+            border: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            text-align: center;
+        }
+        button {
+            background: linear-gradient(to right, #22c55e, #15803d);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: transform 0.1s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .score {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+        <div class="score">
+            <span id="current-score">Score: 0</span>
+            <span id="high-score">Meilleur: 1000</span>
+        </div>
+        <div class="controls">
+            <button id="jump-btn">SAUTER</button>
+            <button id="reset-btn">RÉINITIALISER</button>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('current-score');
+        const highScoreDisplay = document.getElementById('high-score');
+        const jumpBtn = document.getElementById('jump-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        // Ajuster la taille du canvas au chargement
+        function resizeCanvas() {
+            const container = document.getElementById('game-container');
+            const aspectRatio = 4/3;
+            let width = Math.min(window.innerWidth * 0.9, window.innerHeight * aspectRatio * 0.9);
+            let height = width / aspectRatio;
+            
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+        }
+        
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+        
+        // État du jeu
+        const state = {
+            sebi: {
+                x: 0,
+                y: 0,
+                w: 80,
+                h: 80,
+                vy: 0,
+                vx: 0,
+                jumping: false,
+                doubleJumpAvailable: false
+            },
+            obstacles: [],
+            speed: 4,
+            gravity: 1.2,
+            jumpPower: -16,
+            running: true,
+            currentDistance: 0
+        };
+        
+        // Constantes
+        let GROUND_HEIGHT, PLAYER_HEIGHT, PLAYER_WIDTH, FLOOR_Y, PLAYER_Y, PLAYER_X;
+        
+        // Images
+        const images = {};
+        let imagesLoaded = 0;
+        const requiredImages = 3;
+        
+        // Charger les images
+        function loadImages() {
+            const imageNames = ['sebi', 'bush', 'foret-bg'];
+            
+            imageNames.forEach(name => {
+                const img = new Image();
+                img.src = `${name}.png`;
+                img.onload = () => {
+                    imagesLoaded++;
+                    if (imagesLoaded === requiredImages) {
+                        initialize();
+                    }
+                };
+                img.onerror = () => {
+                    console.error(`Erreur au chargement de l'image: ${name}.png`);
+                    // Essayer la version mobile
+                    img.src = `${name}-small.png`;
+                };
+                images[name] = img;
+            });
+        }
+        
+        // Initialisation
+        function initialize() {
+            // Calculer les dimensions
+            GROUND_HEIGHT = canvas.height * 0.12;
+            PLAYER_HEIGHT = canvas.height * 0.18;
+            PLAYER_WIDTH = PLAYER_HEIGHT * 1.5;
+            FLOOR_Y = canvas.height - GROUND_HEIGHT;
+            PLAYER_Y = FLOOR_Y - PLAYER_HEIGHT;
+            PLAYER_X = canvas.width * 0.2;
+            
+            // Initialiser le joueur
+            resetSebi();
+            
+            // Démarrer la boucle de jeu
+            lastTime = performance.now();
+            gameLoop(performance.now());
+        }
+        
+        // Réinitialiser le joueur
+        function resetSebi() {
+            state.sebi = {
+                x: PLAYER_X,
+                y: PLAYER_Y,
+                w: PLAYER_WIDTH,
+                h: PLAYER_HEIGHT,
+                vy: 0,
+                vx: 0,
+                jumping: false,
+                doubleJumpAvailable: false
+            };
+        }
+        
+        // Générer un obstacle
+        function generateObstacle() {
+            const OBSTACLE_HEIGHT = canvas.height * 0.14;
+            const OBSTACLE_WIDTH = OBSTACLE_HEIGHT * 0.8;
+            
+            return {
+                type: "obstacle",
+                x: canvas.width + 20,
+                y: FLOOR_Y - OBSTACLE_HEIGHT,
+                w: OBSTACLE_WIDTH,
+                h: OBSTACLE_HEIGHT,
+                passed: false
+            };
+        }
+        
+        // Dessin du joueur
+        function drawPlayer(p) {
+            if (images.sebi && images.sebi.complete) {
+                ctx.drawImage(images.sebi, p.x, p.y, p.w, p.h);
+            } else {
+                ctx.fillStyle = 'orange';
+                ctx.fillRect(p.x, p.y, p.w, p.h);
+            }
+        }
+        
+        // Dessin d'un obstacle
+        function drawObstacle(o) {
+            if (images.bush && images.bush.complete) {
+                ctx.drawImage(images.bush, o.x, o.y, o.w, o.h);
+            } else {
+                ctx.fillStyle = 'green';
+                ctx.fillRect(o.x, o.y, o.w, o.h);
+            }
+        }
+        
+        // Dessin de l'arrière-plan
+        function drawBackground() {
+            if (images['foret-bg'] && images['foret-bg'].complete) {
+                ctx.drawImage(images['foret-bg'], 0, 0, canvas.width, canvas.height);
+            } else {
+                const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                grad.addColorStop(0, '#4ade80');
+                grad.addColorStop(0.5, '#166534');
+                grad.addColorStop(1, '#052e16');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            // Sol
+            ctx.fillStyle = "#4b5320";
+            ctx.fillRect(0, FLOOR_Y, canvas.width, GROUND_HEIGHT);
+        }
+        
+        // Fonction de saut
+        function jump() {
+            const p = state.sebi;
+            
+            if (!p.jumping) {
+                p.vy = state.jumpPower;
+                p.vx = state.speed * 0.4;
+                p.x += 6; // Boost initial
+                p.jumping = true;
+                p.doubleJumpAvailable = true;
+            } else if (p.doubleJumpAvailable && p.vy > state.jumpPower * 0.3) {
+                p.vy = state.jumpPower * 0.7;
+                p.vx += state.speed * 0.2;
+                p.doubleJumpAvailable = false;
+            }
+        }
+        
+        // Temps pour la dernière frame
+        let lastTime = 0;
+        
+        // Boucle principale du jeu
+        function gameLoop(timestamp) {
+            // Calculer le delta
+            const delta = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+            
+            // Effacer l'écran
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Dessiner l'arrière-plan
+            drawBackground();
+            
+            // Mise à jour du score
+            state.currentDistance += state.speed * delta;
+            scoreDisplay.textContent = `Score: ${Math.floor(state.currentDistance)}`;
+            
+            // Mise à jour du joueur (Sebi)
+            const sebi = state.sebi;
+            
+            // Appliquer la gravité
+            sebi.vy += state.gravity;
+            sebi.y += sebi.vy;
+            
+            // Gestion du sol
+            if (sebi.y > PLAYER_Y) {
+                sebi.y = PLAYER_Y;
+                sebi.vy = 0;
+                sebi.jumping = false;
+                sebi.doubleJumpAvailable = false;
+            }
+            
+            // Mouvement horizontal pendant le saut
+            if (sebi.jumping) {
+                // Effet de courbe naturelle
+                const jumpProgress = Math.min(1, Math.abs(sebi.y - PLAYER_Y) / (canvas.height * 0.25));
+                const jumpFactor = 1 - Math.pow(jumpProgress, 2); // Courbe quadratique
+                sebi.x += sebi.vx * delta * 60 * (0.7 + jumpFactor * 0.3);
+                
+                // Retour progressif
+                sebi.vx *= 0.98;
+            } else {
+                // Retour lent à la position de base quand on est au sol
+                sebi.x = Math.max(PLAYER_X, sebi.x - (sebi.x - PLAYER_X) * 0.002);
+                // Si on est très proche, snap directement
+                if (sebi.x - PLAYER_X < 1) {
+                    sebi.x = PLAYER_X;
+                }
+            }
+            
+            // Mise à jour des obstacles
+            state.obstacles = state.obstacles.filter(o => {
+                o.x -= state.speed * delta * 60;
+                
+                // Marquer l'obstacle comme passé
+                if (!o.passed && o.x + o.w < sebi.x) {
+                    o.passed = true;
+                }
+                
+                // Conserver les obstacles visibles
+                return o.x > -o.w;
+            });
+            
+            // Génération périodique d'obstacles
+            if (Math.random() < 0.01 + (state.currentDistance / 10000)) {
+                if (state.obstacles.length === 0 || 
+                    state.obstacles[state.obstacles.length - 1].x < canvas.width * 0.7) {
+                    state.obstacles.push(generateObstacle());
+                }
+            }
+            
+            // Dessiner les obstacles
+            state.obstacles.forEach(drawObstacle);
+            
+            // Dessiner le joueur
+            drawPlayer(sebi);
+            
+            // Continuer la boucle
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Événements
+        jumpBtn.addEventListener('click', jump);
+        resetBtn.addEventListener('click', () => {
+            state.obstacles = [];
+            state.currentDistance = 0;
+            resetSebi();
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                jump();
+            }
+        });
+        
+        // Charger les images et initialiser le jeu
+        loadImages();
+    </script>
+</body>
+</html>

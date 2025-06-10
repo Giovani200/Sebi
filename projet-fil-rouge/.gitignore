@@ -9,6 +9,10 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+/package-lock.json
+/package.json
+/postcss.config.mjs
+
 
 # testing
 /coverage
@@ -39,3 +43,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+*.zip
+postcss.config.zip

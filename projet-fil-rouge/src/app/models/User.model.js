@@ -17,6 +17,12 @@ const userSchema = new mongoose.Schema({
     min: 4,
     max: 120,
   },
+
+  avatar: {
+  type: String,
+  default: "", // ou une URL par défaut
+  },
+  
   email: {
     type: String,
     required: true,
@@ -41,6 +47,12 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  resetPasswordToken: {
+    type: String
+  },
+  resetPasswordExpires: {
+    type: Date
   },
 });
 
