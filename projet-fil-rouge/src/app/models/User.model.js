@@ -19,10 +19,10 @@ const userSchema = new mongoose.Schema({
   },
 
   avatar: {
-  type: String,
-  default: "", // ou une URL par défaut
+    type: String,
+    default: "", // ou une URL par défaut
   },
-  
+
   email: {
     type: String,
     required: true,
@@ -54,6 +54,10 @@ const userSchema = new mongoose.Schema({
   resetPasswordExpires: {
     type: Date
   },
+  isAdmin: {
+    type: Boolean,
+    default: false
+  }
 });
 
 module.exports = mongoose.models.User || mongoose.model('User', userSchema);
