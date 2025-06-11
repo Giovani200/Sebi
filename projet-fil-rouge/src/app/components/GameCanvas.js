@@ -15,7 +15,7 @@ export default function GameCanvas() {
   const {
     score, highScore, isGameOver, isGameReady,
     jump, reset, nightMode, showTutorial, closeTutorial, rewardUnlocked,
-    resetHighScore
+    resetHighScore, currentSpeed
   } = useGame(canvasRef);
 
   // State pour l'interface du jeu
@@ -77,7 +77,7 @@ export default function GameCanvas() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full h-screen max-w-full pt-23">
+    <div className="flex flex-col items-center w-full h-screen max-w-full pt-20 top-4 relative">
       <div className="relative w-full h-full flex-1 flex items-center justify-center overflow-hidden">
         {/* Fond d'écran décoratif doux reprenant le style du site */}
         <div className="absolute inset-0 bg-[#fdf2dd] z-0 pointer-events-none">
@@ -86,7 +86,7 @@ export default function GameCanvas() {
           <div className="absolute bottom-[20%] right-[10%] w-32 h-32 bg-yellow-100/30 rounded-full"></div>
           <div className="absolute top-[30%] right-[30%] text-4xl animate-float-slow opacity-50">✨</div>
           <div className="absolute bottom-[40%] left-[15%] text-4xl animate-float-slow animation-delay-500 opacity-50">⭐</div>
-          
+
           {/* Étoiles supplémentaires comme dans le footer */}
           <div className="absolute top-[15%] right-[15%] text-xl animate-float-slow opacity-40">⭐</div>
           <div className="absolute bottom-[15%] left-[25%] text-xl animate-float-slow animation-delay-300 opacity-40">✨</div>
@@ -121,7 +121,7 @@ export default function GameCanvas() {
 
         {/* Écran de démarrage */}
         {!isGameReady && !isGameOver && (
-         <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fdf2dd]/95 text-gray-800 rounded-2xl z-20">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#fdf2dd]/95 text-gray-800 rounded-2xl z-20">
             <div className="relative w-32 h-32 mb-4 animate-bounce-slow">
               <Image
                 src="/images/sebi.webp"
@@ -247,6 +247,13 @@ export default function GameCanvas() {
               <span className="flex items-center text-indigo-700"><span className="mr-2">🌙</span> {t('game.nightMode')}</span>
             </div>
           )}
+
+          <div className="bg-green-100/80 px-6 py-2 rounded-full border border-green-200/50 shadow-sm">
+            <span className="flex items-center text-green-700">
+              <span className="mr-2">⚡</span>
+              Vitesse: {currentSpeed ? currentSpeed.toFixed(1) : '4.0'}x
+            </span>
+          </div>
         </div>
       </div>
 
@@ -268,7 +275,10 @@ export default function GameCanvas() {
       {rewardUnlocked && (
         <RewardNotification
           reward={rewardUnlocked}
-          onClose={() => setRewardUnlocked(null)}
+          onClose={() => {
+            // Utiliser une fonction vide ou appeler reset si nécessaire
+            console.log("Reward notification closed");
+          }}
         />
       )}
     </div>

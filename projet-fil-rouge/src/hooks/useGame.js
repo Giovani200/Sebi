@@ -2,8 +2,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { generateObstacle } from "../utils/gameGeneratorsSimple";
 import soundManager from "../utils/SoundManager";
 import { validateCollisions } from "../utils/collisionTests";
-// import { jwtDecode } from "jwt-decode"; // Import important pour décoder le token
-// import RewardNotification from "../components/RewardNotification";
+import { initializeAI, predictReward, analyzePerformance } from "../utils/AIRewardSystem";
 
 // Définition des constantes initiales
 const SEBI_INITIAL = { x: 100, y: 100, w: 80, h: 80, vy: 0, vx: 0, jumping: false };
@@ -23,12 +22,11 @@ export default function useGame(canvasRef) {
   const [nightMode, setNightMode] = useState(false);
   const [isGameReady, setIsGameReady] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [currentSpeed, setCurrentSpeed] = useState(4); // Nouveau: état pour la vitesse actuelle
 
   // Pour suivre les paliers déjà débloqués
   const unlockedMilestonesRef = useRef(new Set());
   const scoreSubmittedRef = useRef(false);
-
-
 
   // État du jeu
   const state = useRef({
@@ -40,7 +38,9 @@ export default function useGame(canvasRef) {
     jumpPower: -16,
     frame: 0,
     running: true,
-    currentDistance: 0      // Stocke directement la distance/score actuel
+    currentDistance: 0,
+    gameStartTime: 0,        // Nouveau: temps de début du jeu
+    lastSpeedIncrease: 0     // Nouveau: dernier moment d'augmentation de vitesse
   });
 
   // Préchargement des images et sons
@@ -576,7 +576,17 @@ export default function useGame(canvasRef) {
         }
       }
 
-      // Mettre à jour la physique du jeu et la logique
+      // NOUVELLE LOGIQUE : Vitesse progressive - augmente de 1.5 toutes les 10 secondes
+      const speedIncreaseInterval = 10000; // 10 secondes en millisecondes
+      if (timestamp - state.current.lastSpeedIncrease >= speedIncreaseInterval) {
+        state.current.speed += 1.5; // Accumulation: ajouter 1.5 à la vitesse actuelle
+        setCurrentSpeed(state.current.speed); // Mettre à jour l'état pour l'affichage
+        state.current.lastSpeedIncrease = timestamp;
+        const gameTimeInSeconds = (timestamp - state.current.gameStartTime) / 1000;
+        console.log(`Vitesse augmentée à ${state.current.speed} après ${Math.floor(gameTimeInSeconds)} secondes`);
+      }
+
+      // Mise à jour de la physique du jeu et la logique
 
       // Mise à jour du joueur (Sebi)
       const sebi = state.current.sebi;
@@ -611,10 +621,17 @@ export default function useGame(canvasRef) {
       state.current.currentDistance = Math.floor(distance);
       setScore(state.current.currentDistance);
 
+      // Mise à jour des statistiques du joueur
+      updatePlayerStats({
+        distance: state.current.currentDistance,
+        speed: state.current.speed,
+        playTime: (timestamp - state.current.gameStartTime) / 1000
+      });
+
       // Vérifier et mettre à jour le high score si nécessaire
       if (state.current.currentDistance > highScore) {
         setHighScore(state.current.currentDistance);
-        // Supprimé: localStorage.setItem("sebi-highscore", state.current.currentDistance);
+        // Ne pas redémarrer le jeu, continuer la partie
       }
 
       // Activer le mode nuit périodiquement
@@ -624,8 +641,8 @@ export default function useGame(canvasRef) {
         setNightMode(false);
       }
 
-      // Augmenter progressivement la vitesse du jeu
-      state.current.speed = 4 + Math.floor(distance / 500) * 0.5;
+      // Augmenter progressivement la vitesse du jeu - REMPLACÉ par la logique temporelle
+      // state.current.speed = 4 + Math.floor(distance / 500) * 0.5;
 
       // Mise à jour des obstacles existants
       state.current.obstacles = state.current.obstacles.filter(o => {
@@ -645,9 +662,90 @@ export default function useGame(canvasRef) {
           // Jouer le son du saut pour simuler l'impact
           soundManager.play('jump', { pitchVariation: 0.15, volume: 0.8 });
 
-          // Vérifier si le score a déjà été envoyé
+          // Vérifier si le score a déjà été soumis
           if (!scoreSubmittedRef.current) {
             scoreSubmittedRef.current = true;
+
+            // Statistiques finales de la partie
+            const finalStats = {
+              score: state.current.currentDistance,
+              jumps: playerStats.jumps,
+              speed: state.current.speed,
+              playTime: (timestamp - state.current.gameStartTime) / 1000,
+              highScore: highScore
+            };
+
+            // Mettre à jour l'historique des parties
+            setGameHistory(prev => [...prev, finalStats]);
+
+            // Générer dynamiquement le prochain palier en fonction du score actuel
+            // (Déplacé hors de la fonction gameLoop pour éviter le warning)
+            // function getNextMilestone(current) {
+            //   if (current < 500) return current + 100;
+            //   if (current < 2000) return current + 200;
+            //   return current + Math.floor(current * 0.2); // +20% du dernier palier
+            // }
+
+            // Palier atteint (le plus haut palier non encore débloqué)
+            const palier = rewardMilestones.find(
+              m => state.current.currentDistance >= m && !unlockedMilestonesRef.current.has(m)
+            );
+            if (palier) {
+              unlockedMilestonesRef.current.add(palier);
+
+              // Générer l'image IA et afficher la récompense
+              generateMascotteImageAI({
+                userId: "user-" + Math.floor(Math.random() * 100000), // À remplacer par l'ID réel
+                score: state.current.currentDistance,
+                palier,
+                mascotte: "Sebi la gazelle",
+                ami: "Léo le lion"
+              }).then(imageUrl => {
+                const reward = {
+                  score: state.current.currentDistance,
+                  palier,
+                  imageUrl,
+                  title: `Bravo !`,
+                  description: `Tu as débloqué une illustration unique de Sebi et son ami !`,
+                  icon: "🦁",
+                  bgGradient: "from-green-200 to-yellow-200",
+                  borderColor: "border-yellow-500",
+                  pattern: "✨",
+                  specialNote: "Image générée spécialement pour toi par l'IA !"
+                };
+                setRewardUnlocked(reward);
+                soundManager.play('jump', { pitchVariation: -0.2, volume: 1.2 });
+                setTimeout(() => setRewardUnlocked(null), 8000);
+              });
+
+              // Générer dynamiquement tous les prochains paliers nécessaires
+              generateNextRewardMilestone();
+            } else {
+              // Récompense IA classique si pas de nouveau palier
+              let aiReward;
+              if (aiInitializedRef.current) {
+                aiReward = predictReward(finalStats);
+                const specialPerformance = analyzePerformance(gameHistory, finalStats.score);
+                if (specialPerformance && finalStats.score > 300) {
+                  aiReward = {
+                    ...aiReward,
+                    ...specialPerformance,
+                    score: finalStats.score
+                  };
+                }
+              } else {
+                aiReward = {
+                  score: finalStats.score,
+                  title: finalStats.score > highScore ? "Nouveau Record!" : "Belle Performance!",
+                  description: `Tu as parcouru ${finalStats.score} mètres!`,
+                  icon: "🏆",
+                  bgGradient: "from-yellow-300 to-orange-400",
+                  borderColor: "border-yellow-500",
+                  pattern: "✨"
+                };
+              }
+              setRewardUnlocked(aiReward);
+            }
 
             // Enregistrer le score final
             fetch("/api/scores", {
@@ -656,6 +754,7 @@ export default function useGame(canvasRef) {
               body: JSON.stringify({
                 score: state.current.currentDistance,
                 gameSlug: "sebi-run",
+                stats: finalStats
               }),
               credentials: 'include',
             })
@@ -666,20 +765,6 @@ export default function useGame(canvasRef) {
                 // Mettre à jour le highscore si nécessaire
                 if (data.highscore) {
                   setHighScore(data.highscore);
-                  // Supprimé: localStorage.setItem("sebi-highscore", data.highscore);
-                }
-
-                // Afficher la récompense si une a été débloquée
-                if (data.reward) {
-                  setRewardUnlocked(data.reward);
-
-                  // Jouer un son de récompense
-                  soundManager.play('jump', { pitchVariation: -0.2, volume: 1.2 });
-
-                  // Cacher la notification après quelques secondes
-                  setTimeout(() => {
-                    setRewardUnlocked(null);
-                  }, 6000);
                 }
               })
               .catch(err => {
@@ -699,21 +784,25 @@ export default function useGame(canvasRef) {
       });
 
       // Générer de nouveaux obstacles périodiquement
-      // La fréquence diminue avec le score pour augmenter la difficulté
-      const baseObstacleInterval = Math.max(60, 120 - Math.floor(distance / 500) * 10);
+      // CORRIGÉ: Garder un espacement constant malgré l'augmentation de vitesse
+      const baseObstacleInterval = 120; // Interval fixe pour un espacement constant
       const obstacleInterval = Math.floor(baseObstacleInterval);
 
       // Vérifier si le dernier obstacle ajouté est suffisamment éloigné avant d'en ajouter un nouveau
       let canAddObstacle = true;
       if (state.current.obstacles.length > 0) {
         const lastObstacle = state.current.obstacles[state.current.obstacles.length - 1];
-        // S'assurer que le dernier obstacle ajouté est au moins à 20% de la largeur du canvas
-        canAddObstacle = lastObstacle.x < canvas.width * 0.8;
+        // CORRIGÉ: Espacement basé sur la distance plutôt que sur la position relative
+        const minDistance = 300; // Distance minimale entre obstacles en pixels
+        canAddObstacle = lastObstacle.x < canvas.width - minDistance;
       }
 
       if (state.current.frame % obstacleInterval === 0 && canAddObstacle) {
         state.current.obstacles.push(generateObstacle(canvas, state.current.currentDistance));
       }
+
+      // SUPPRIMÉ: Vérification des récompenses pendant le jeu
+      // Les récompenses sont maintenant accordées uniquement à la fin du jeu
 
       // Continuer la boucle
       animation = requestAnimationFrame(gameLoop);
@@ -728,6 +817,12 @@ export default function useGame(canvasRef) {
       resetSebi();
       resetObstacles();
       lastTime = performance.now();
+
+      // Réinitialiser les variables de temps
+      state.current.gameStartTime = 0;
+      state.current.lastSpeedIncrease = 0;
+      state.current.speed = 4; // Réinitialiser la vitesse de base
+      setCurrentSpeed(4); // Réinitialiser l'affichage de la vitesse
 
       // Réinitialiser les paliers débloqués
       unlockedMilestonesRef.current.clear();
@@ -757,31 +852,28 @@ export default function useGame(canvasRef) {
     if (!g.jumping) {
       // Premier saut - saut normal
       g.vy = state.current.jumpPower;
-
-      // Ajouter une vitesse horizontale plus dynamique
-      g.vx = state.current.speed * 0.4; // 40% de la vitesse courante du jeu
-
-      // Appliquer une impulsion instantanée horizontale
-      g.x += 6; // Boost immédiat de 6px
-
+      g.vx = state.current.speed * 0.4;
+      g.x += 6;
       g.jumping = true;
-      // Marquer comme premier saut
       g.doubleJumpAvailable = true;
 
-      // Jouer le son de saut
+      // Mettre à jour les statistiques - nombre de sauts
+      updatePlayerStats({
+        jumps: playerStats.jumps + 1
+      });
+
       soundManager.play('jump', { pitchVariation: 0.05 });
     } else if (g.doubleJumpAvailable && g.vy > state.current.jumpPower * 0.3) {
-      // Double saut - plus petit, uniquement disponible pendant la descente
-      // 70% de la puissance du saut initial
+      // Double saut
       g.vy = state.current.jumpPower * 0.7;
-
-      // Bonus horizontal sur le double saut
       g.vx += state.current.speed * 0.2;
-
-      // Marquer le double saut comme utilisé
       g.doubleJumpAvailable = false;
 
-      // Jouer le son de saut avec un pitch différent
+      // Mettre à jour les statistiques - nombre de sauts
+      updatePlayerStats({
+        jumps: playerStats.jumps + 1
+      });
+
       soundManager.play('jump', { pitchVariation: 0.05, volume: 0.7 });
     }
   }
@@ -794,12 +886,22 @@ export default function useGame(canvasRef) {
     setNightMode(false);
     setIsGameReady(true);
     setShowTutorial(false);
+    setCurrentSpeed(4); // Réinitialiser la vitesse affichée
+    setRewardUnlocked(null); // AJOUTÉ: Réinitialiser les récompenses
 
     // Réinitialiser le score
     state.current.currentDistance = 0;
 
-    // Réinitialiser les paliers débloqués
-    unlockedMilestonesRef.current.clear();
+    // Réinitialiser les statistiques du joueur
+    setPlayerStats({
+      jumps: 0,
+      obstaclesAvoided: 0,
+      speed: 4,
+      playTime: 0,
+      distance: 0
+    });
+
+    // Ne pas réinitialiser les paliers de récompense pour garder la progression
 
     // Réinitialiser le drapeau de soumission de score
     scoreSubmittedRef.current = false;
@@ -807,10 +909,8 @@ export default function useGame(canvasRef) {
     setTimeout(() => {
       const canvas = canvasRef.current;
       if (canvas && canvas.width > 0 && canvas.height > 0) {
-        // Les dimensions sont correctes, réinitialisation effectuée dans l'effet principal
         console.log("Canvas is ready for reset");
       } else {
-        // Canvas pas prêt, on réessaie
         console.log("Canvas not ready for reset, trying again soon");
         setTimeout(() => reset(), 100);
       }
@@ -852,6 +952,82 @@ export default function useGame(canvasRef) {
       });
   }, []);
 
+  // État pour les statistiques du joueur (pour l'IA)
+  const [playerStats, setPlayerStats] = useState({
+    jumps: 0,
+    obstaclesAvoided: 0,
+    speed: 4,
+    playTime: 0,
+    distance: 0
+  });
+
+  // État pour l'historique de jeu (pour l'IA)
+  const [gameHistory, setGameHistory] = useState([]);
+
+  // État pour les paliers de récompenses dynamiques (commence à 100)
+  const [rewardMilestones, setRewardMilestones] = useState([100]);
+
+  // Référence pour savoir si l'IA est initialisée
+  const aiInitializedRef = useRef(false);
+
+  // Initialiser l'IA au premier rendu
+  useEffect(() => {
+    if (!aiInitializedRef.current) {
+      console.log("Initialisation de l'IA...");
+      initializeAI().then(success => {
+        aiInitializedRef.current = success;
+        console.log("Statut d'initialisation de l'IA:", success);
+      });
+    }
+  }, []);
+
+  // Fonction pour mettre à jour les statistiques du joueur
+  const updatePlayerStats = useCallback((newStats) => {
+    setPlayerStats(prev => ({
+      ...prev,
+      ...newStats
+    }));
+  }, []);
+
+  // Générer le prochain palier de récompense dynamiquement
+  const generateNextRewardMilestone = useCallback(() => {
+    // Recherche du dernier palier atteint (pas seulement le dernier du tableau)
+    let lastMilestone = rewardMilestones[rewardMilestones.length - 1];
+    // Ajoute dynamiquement des paliers tant que le score actuel dépasse le dernier palier connu
+    while (score >= lastMilestone) {
+      lastMilestone = getNextMilestone(lastMilestone);
+      setRewardMilestones(prev => [...prev, lastMilestone]);
+      console.log(`Nouveau palier de récompense généré dynamiquement: ${lastMilestone}`);
+    }
+  }, [rewardMilestones, score]);
+
+  // Fonction pour générer une image IA pour la récompense
+  async function generateMascotteImageAI({ userId, score, palier, mascotte, ami }) {
+    // Appel à une API d'IA générative (exemple fictif, à adapter selon ton backend)
+    // Le prompt peut être personnalisé selon le jeu, le score, la mascotte, etc.
+    const prompt = `Illustration colorée et joyeuse de ${mascotte} (mascotte principale) avec son ami ${ami}, célébrant un score de ${score} au palier ${palier}, style cartoon pour enfants.`;
+    try {
+      const res = await fetch("/api/ai/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          userId,
+          score,
+          palier,
+          mascotte,
+          ami
+        }),
+        credentials: 'include'
+      });
+      const data = await res.json();
+      return data.imageUrl; // L'URL de l'image générée par l'IA
+    } catch (e) {
+      console.error("Erreur génération image IA:", e);
+      return null;
+    }
+  }
+
   // Retourner les états et fonctions nécessaires
   return {
     state: state,
@@ -875,6 +1051,17 @@ export default function useGame(canvasRef) {
     },
     reset,
     rewardUnlocked,
-    resetHighScore
+    resetHighScore,
+    currentSpeed, // Nouveau: exposer la vitesse actuelle
+    playerStats,
+    rewardMilestones,
+    gameHistory,
   };
+}
+
+// À la racine du module (hors de toute fonction), déclare getNextMilestone pour éviter le warning :
+function getNextMilestone(current) {
+  if (current < 500) return current + 100;
+  if (current < 2000) return current + 200;
+  return current + Math.floor(current * 0.2); // +20% du dernier palier
 }
