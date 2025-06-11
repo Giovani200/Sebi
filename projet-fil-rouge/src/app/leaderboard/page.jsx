@@ -6,7 +6,11 @@ import Image from "next/image";
 import { useTranslation } from 'react-i18next';
 import '../../i18n/client';
 
-
+/**
+ * Page de classement (leaderboard)
+ * Affiche les meilleurs joueurs dans différentes catégories
+ * @returns {JSX.Element} Composant de la page de classement
+ */
 export default function LeaderboardPage() {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
@@ -17,11 +21,13 @@ export default function LeaderboardPage() {
     const [sebiPlayers, setSebiPlayers] = useState([]);
     const router = useRouter();
 
+    // Récupération des données de classement depuis l'API
     useEffect(() => {
         fetch('/api/leaderboard', {
             credentials: 'include'
         })
         .then(res => {
+            // Redirection vers la page de connexion si non authentifié
             if (res.status === 401) {
                 router.push('/login');
                 return null;
@@ -30,6 +36,7 @@ export default function LeaderboardPage() {
         })
         .then(data => {
             if (data) {
+                // Mise à jour des états avec les données du classement
                 setTopGlobal(data.topGlobal || []);
                 setTopSebi(data.topSebi || []);
                 setTopJames(data.topJames || []);
@@ -44,23 +51,23 @@ export default function LeaderboardPage() {
         });
     }, [router]);
 
-    
+    // Affichage d'un loader pendant le chargement des données
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 pt-28 pb-16 flex justify-center items-center">
                 <div className="max-w-4xl w-full bg-white rounded-3xl shadow-xl p-8 border-4 border-orange-200">
                     <h1 className="text-3xl font-bold mb-8 text-center text-orange-600">
-                        Chargement du classement...
+                        {t('leaderboard.loading')}
                     </h1>
-                    <div className="flex justify-center">
+                    <div className="flex justify-center" aria-label="Chargement en cours">
                         <div className="animate-bounce w-20 h-20 bg-orange-300 rounded-full flex items-center justify-center transform rotate-12">
-                            <span className="text-3xl">🏆</span>
+                            <span className="text-3xl" role="img" aria-label="Trophée">🏆</span>
                         </div>
                         <div className="animate-bounce animation-delay-300 w-16 h-16 bg-yellow-300 rounded-full flex items-center justify-center ml-4 transform -rotate-6">
-                            <span className="text-2xl">⭐</span>
+                            <span className="text-2xl" role="img" aria-label="Étoile">⭐</span>
                         </div>
                         <div className="animate-bounce animation-delay-600 w-18 h-18 bg-amber-300 rounded-full flex items-center justify-center ml-4 transform rotate-6">
-                            <span className="text-2xl">🎮</span>
+                            <span className="text-2xl" role="img" aria-label="Manette de jeu">🎮</span>
                         </div>
                     </div>
                 </div>
@@ -68,7 +75,11 @@ export default function LeaderboardPage() {
         );
     }
 
-    // Badges pour les positions
+    /**
+     * Génère un badge emoji selon la position du joueur
+     * @param {number} position - Position du joueur (0-indexé)
+     * @returns {string} - Emoji correspondant à la position
+     */
     const getBadge = (position) => {
         switch(position) {
             case 0: return "🥇";
@@ -80,23 +91,23 @@ export default function LeaderboardPage() {
         }
     };
 
-     return (
+    return (
         <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 pt-28 pb-16 relative overflow-hidden">
             {/* Éléments décoratifs */}
-            <div className="absolute top-40 left-10 w-20 h-20 bg-yellow-300 rounded-full opacity-20 animate-pulse-slow"></div>
-            <div className="absolute top-60 right-10 w-32 h-32 bg-orange-300 rounded-full opacity-20 animate-pulse-very-slow"></div>
-            <div className="absolute bottom-20 left-20 w-24 h-24 bg-amber-300 rounded-full opacity-20 animate-pulse"></div>
+            <div className="absolute top-40 left-10 w-20 h-20 bg-yellow-300 rounded-full opacity-20 animate-pulse-slow" aria-hidden="true"></div>
+            <div className="absolute top-60 right-10 w-32 h-32 bg-orange-300 rounded-full opacity-20 animate-pulse-very-slow" aria-hidden="true"></div>
+            <div className="absolute bottom-20 left-20 w-24 h-24 bg-amber-300 rounded-full opacity-20 animate-pulse" aria-hidden="true"></div>
             
             {/* Étoiles décoratives */}
-            <div className="absolute top-32 right-[20%] text-yellow-400 text-3xl transform rotate-12 animate-float-slow">⭐</div>
-            <div className="absolute bottom-40 left-[30%] text-orange-400 text-2xl transform -rotate-12 animate-float-slow animation-delay-500">✨</div>
-            <div className="absolute top-72 left-[15%] text-amber-400 text-2xl transform rotate-6 animate-float-slow animation-delay-700">⭐</div>
+            <div className="absolute top-32 right-[20%] text-yellow-400 text-3xl transform rotate-12 animate-float-slow" aria-hidden="true">⭐</div>
+            <div className="absolute bottom-40 left-[30%] text-orange-400 text-2xl transform -rotate-12 animate-float-slow animation-delay-500" aria-hidden="true">✨</div>
+            <div className="absolute top-72 left-[15%] text-amber-400 text-2xl transform rotate-6 animate-float-slow animation-delay-700" aria-hidden="true">⭐</div>
             
             <div className="max-w-6xl mx-auto px-4 relative z-10">
                 {/* Titre principal */}
                 <div className="text-center mb-12">
                     <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 mb-3 transform -rotate-1">
-                        🏆 {t('leaderboard.title')} 🏆
+                        <span role="img" aria-hidden="true">🏆</span> {t('leaderboard.title')} <span role="img" aria-hidden="true">🏆</span>
                     </h1>
                     <p className="text-2xl text-orange-700 font-bold">
                         {t('leaderboard.subtitle')}
@@ -105,10 +116,10 @@ export default function LeaderboardPage() {
                 
                 {/* PODIUM GLOBAL - TOP 3 TOUS JEUX CONFONDUS */}
                 {Array.isArray(topGlobal) && topGlobal.length > 0 && (
-                    <div className="mb-12 relative">
+                    <section className="mb-12 relative" aria-labelledby="global-podium-title">
                         <div className="bg-gradient-to-r from-purple-500 to-indigo-500 rounded-3xl shadow-xl overflow-hidden border-4 border-indigo-300 pb-12 pt-8 px-6">
-                            <h2 className="text-3xl font-bold text-white text-center mb-8 transform rotate-1">
-                                🌍 {t('leaderboard.globalPodium')} 🌍
+                            <h2 id="global-podium-title" className="text-3xl font-bold text-white text-center mb-8 transform rotate-1">
+                                <span role="img" aria-hidden="true">🌍</span> {t('leaderboard.globalPodium')} <span role="img" aria-hidden="true">🌍</span>
                             </h2>
                             
                             <div className="flex justify-center items-end space-x-6 md:space-x-10">
@@ -118,7 +129,7 @@ export default function LeaderboardPage() {
                                         <div className="w-full h-full rounded-full border-4 border-silver shadow-lg overflow-hidden bg-white">
                                             <img 
                                                 src={topGlobal[1]?.user?.avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=player2"} 
-                                                alt={topGlobal[1]?.user?.firstName || "Joueur 2"}
+                                                alt={`Avatar de ${topGlobal[1]?.user?.firstName || "Joueur 2"}`}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
                                                     e.target.onerror = null;
@@ -126,7 +137,7 @@ export default function LeaderboardPage() {
                                                 }}
                                             />
                                         </div>
-                                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-silver rounded-full flex items-center justify-center text-2xl shadow-md">
+                                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-silver rounded-full flex items-center justify-center text-2xl shadow-md" aria-label="Médaille d'argent">
                                             🥈
                                         </div>
                                     </div>
@@ -134,17 +145,17 @@ export default function LeaderboardPage() {
                                         <p className="font-bold text-lg text-gray-800">{topGlobal[1]?.user?.firstName || '---'}</p>
                                         <p className="text-md font-bold text-gray-600">{topGlobal[1]?.totalScore || 0} {t('leaderboard.points')}</p>
                                     </div>
-                                    <div className="h-24 w-20 bg-gradient-to-b from-silver to-gray-300 rounded-t-xl mt-3 shadow-lg"></div>
+                                    <div className="h-24 w-20 bg-gradient-to-b from-silver to-gray-300 rounded-t-xl mt-3 shadow-lg" aria-hidden="true"></div>
                                 </div>
                                 
                                 {/* 1ère place */}
                                 <div className="flex flex-col items-center order-2 transform hover:scale-105 transition-transform z-10">
                                     <div className="relative w-28 h-28 md:w-32 md:h-32 mb-3">
-                                        <div className="absolute inset-0 bg-yellow-300 rounded-full blur-md opacity-40 animate-pulse-slow"></div>
+                                        <div className="absolute inset-0 bg-yellow-300 rounded-full blur-md opacity-40 animate-pulse-slow" aria-hidden="true"></div>
                                         <div className="relative w-full h-full rounded-full border-4 border-yellow-400 shadow-lg overflow-hidden bg-white">
                                             <img 
                                                 src={topGlobal[0]?.user?.avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=player1"} 
-                                                alt={topGlobal[0]?.user?.firstName || "Joueur 1"}
+                                                alt={`Avatar de ${topGlobal[0]?.user?.firstName || "Joueur 1"}`}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
                                                     e.target.onerror = null;
@@ -152,7 +163,7 @@ export default function LeaderboardPage() {
                                                 }}
                                             />
                                         </div>
-                                        <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-3xl shadow-md animate-pulse-very-slow">
+                                        <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-3xl shadow-md animate-pulse-very-slow" aria-label="Médaille d'or">
                                             🥇
                                         </div>
                                     </div>
@@ -160,7 +171,7 @@ export default function LeaderboardPage() {
                                         <p className="font-bold text-xl text-amber-800">{topGlobal[0]?.user?.firstName || '---'}</p>
                                         <p className="text-lg font-bold text-amber-700">{topGlobal[0]?.totalScore || 0} {t('leaderboard.points')}</p>
                                     </div>
-                                    <div className="h-32 w-24 bg-gradient-to-b from-yellow-400 to-amber-400 rounded-t-xl mt-3 shadow-lg"></div>
+                                    <div className="h-32 w-24 bg-gradient-to-b from-yellow-400 to-amber-400 rounded-t-xl mt-3 shadow-lg" aria-hidden="true"></div>
                                 </div>
                                 
                                 {/* 3ème place */}
@@ -169,7 +180,7 @@ export default function LeaderboardPage() {
                                         <div className="w-full h-full rounded-full border-4 border-amber-600 shadow-lg overflow-hidden bg-white">
                                             <img 
                                                 src={topGlobal[2]?.user?.avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=player3"} 
-                                                alt={topGlobal[2]?.user?.firstName || "Joueur 3"}
+                                                alt={`Avatar de ${topGlobal[2]?.user?.firstName || "Joueur 3"}`}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
                                                     e.target.onerror = null;
@@ -177,7 +188,7 @@ export default function LeaderboardPage() {
                                                 }}
                                             />
                                         </div>
-                                        <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-amber-600 rounded-full flex items-center justify-center text-xl shadow-md">
+                                        <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-amber-600 rounded-full flex items-center justify-center text-xl shadow-md" aria-label="Médaille de bronze">
                                             🥉
                                         </div>
                                     </div>
@@ -185,11 +196,11 @@ export default function LeaderboardPage() {
                                         <p className="font-bold text-base text-amber-800">{topGlobal[2]?.user?.firstName || '---'}</p>
                                         <p className="text-sm font-bold text-amber-700">{topGlobal[2]?.totalScore || 0} {t('leaderboard.points')}</p>
                                     </div>
-                                    <div className="h-20 w-18 bg-gradient-to-b from-amber-600 to-orange-400 rounded-t-xl mt-3 shadow-lg"></div>
+                                    <div className="h-20 w-18 bg-gradient-to-b from-amber-600 to-orange-400 rounded-t-xl mt-3 shadow-lg" aria-hidden="true"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </section>
                 )}
 
                 {/* Layout en 2 colonnes */}
@@ -198,10 +209,10 @@ export default function LeaderboardPage() {
                     <div className="space-y-6">
                         {/* PODIUM SEBI - TOP 3 */}
                         {Array.isArray(topSebi) && topSebi.length > 0 && (
-                            <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-orange-300 transform rotate-0.5">
+                            <section className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-orange-300 transform rotate-0.5" aria-labelledby="sebi-podium-title">
                                 <div className="bg-gradient-to-r from-orange-500 to-amber-500 py-5 px-6">
-                                    <h2 className="text-3xl font-bold text-white text-center transform -rotate-1">
-                                        🏆 {t('leaderboard.topSebi')} 🏆
+                                    <h2 id="sebi-podium-title" className="text-3xl font-bold text-white text-center transform -rotate-1">
+                                        <span role="img" aria-hidden="true">🏆</span> {t('leaderboard.topSebi')} <span role="img" aria-hidden="true">🏆</span>
                                     </h2>
                                 </div>
                                 <div className="p-6">
@@ -216,13 +227,13 @@ export default function LeaderboardPage() {
                                                         index === 0 ? 'bg-gradient-to-r from-yellow-400 to-amber-400' : 
                                                         index === 1 ? 'bg-gradient-to-r from-slate-300 to-gray-300' : 
                                                         'bg-gradient-to-r from-amber-600 to-orange-400'
-                                                    }`}>
+                                                    }`} aria-label={`Position ${index + 1}`}>
                                                         {getBadge(index)}
                                                     </div>
                                                     <div className="relative w-14 h-14 rounded-full overflow-hidden border-3 border-orange-300 shadow-md">
                                                         <img
                                                             src={player.user?.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(player.user?.firstName || 'player')}`}
-                                                            alt={player.user?.firstName || 'Joueur'}
+                                                            alt={`Avatar de ${player.user?.firstName || 'Joueur'}`}
                                                             className="w-full h-full object-cover"
                                                             onError={(e) => {
                                                                 e.target.onerror = null;
@@ -233,7 +244,7 @@ export default function LeaderboardPage() {
                                                     <div>
                                                         <h3 className="font-bold text-lg text-gray-800">{player.user?.firstName || 'Joueur'}</h3>
                                                         <div className="flex space-x-1 text-xs text-gray-500">
-                                                            <span>🎮 {player.gamesPlayed || 0} {player.gamesPlayed === 1 ? t('leaderboard.gamesSingular') : t('leaderboard.games')}</span>
+                                                            <span><span role="img" aria-hidden="true">🎮</span> {player.gamesPlayed || 0} {player.gamesPlayed === 1 ? t('leaderboard.gamesSingular') : t('leaderboard.games')}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -244,14 +255,14 @@ export default function LeaderboardPage() {
                                         ))}
                                     </div>
                                 </div>
-                            </div>
+                            </section>
                         )}
 
-                        {/* Classement Sebi */}
-                        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-amber-300 transform rotate-0.5">
+                        {/* Classement Sebi complet */}
+                        <section className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-amber-300 transform rotate-0.5" aria-labelledby="sebi-ranking-title">
                             <div className="bg-gradient-to-r from-amber-500 to-orange-500 py-5 px-6">
-                                <h2 className="text-3xl font-bold text-white text-center transform -rotate-1">
-                                    🏆 {t('leaderboard.sebiRanking')} 🏆
+                                <h2 id="sebi-ranking-title" className="text-3xl font-bold text-white text-center transform -rotate-1">
+                                    <span role="img" aria-hidden="true">🏆</span> {t('leaderboard.sebiRanking')} <span role="img" aria-hidden="true">🏆</span>
                                 </h2>
                             </div>
                             <div className="divide-y divide-amber-100">
@@ -270,13 +281,13 @@ export default function LeaderboardPage() {
                                                             'from-amber-600 to-orange-400'
                                                         )
                                                         : 'bg-gradient-to-r from-amber-400 to-orange-400'
-                                                }`}>
+                                                }`} aria-label={`Position ${index + 1}`}>
                                                     {getBadge(index)}
                                                 </div>
                                                 <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-amber-300 shadow-md">
                                                     <img
                                                         src={player.user?.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(player.user?.firstName || 'player')}`}
-                                                        alt={player.user?.firstName || 'Joueur'}
+                                                        alt={`Avatar de ${player.user?.firstName || 'Joueur'}`}
                                                         className="w-full h-full object-cover"
                                                         onError={(e) => {
                                                             e.target.onerror = null;
@@ -287,7 +298,7 @@ export default function LeaderboardPage() {
                                                 <div>
                                                     <h3 className="font-bold text-gray-800">{player.user?.firstName || 'Joueur'}</h3>
                                                     <div className="flex space-x-1 text-xs text-gray-500">
-                                                        <span>🎮 {player.gamesPlayed || 0} {player.gamesPlayed === 1 ? t('leaderboard.gamesSingular') : t('leaderboard.games')}</span>
+                                                        <span><span role="img" aria-hidden="true">🎮</span> {player.gamesPlayed || 0} {player.gamesPlayed === 1 ? t('leaderboard.gamesSingular') : t('leaderboard.games')}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -305,16 +316,16 @@ export default function LeaderboardPage() {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </section>
                     </div>
 
                     {/* COLONNE DROITE - JAMES */}
                     <div className="space-y-6">
                         {/* PODIUM JAMES - TOP 3 (ou message bientôt disponible) */}
-                        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-blue-300 transform -rotate-0.5">
+                        <section className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-blue-300 transform -rotate-0.5" aria-labelledby="james-podium-title">
                             <div className="bg-gradient-to-r from-blue-500 to-indigo-500 py-5 px-6">
-                                <h2 className="text-3xl font-bold text-white text-center transform rotate-1">
-                                    🏆 {t('leaderboard.topJames')} 🏆
+                                <h2 id="james-podium-title" className="text-3xl font-bold text-white text-center transform rotate-1">
+                                    <span role="img" aria-hidden="true">🏆</span> {t('leaderboard.topJames')} <span role="img" aria-hidden="true">🏆</span>
                                 </h2>
                             </div>
                             <div className="p-6">
@@ -330,13 +341,13 @@ export default function LeaderboardPage() {
                                                         index === 0 ? 'bg-gradient-to-r from-yellow-400 to-amber-400' : 
                                                         index === 1 ? 'bg-gradient-to-r from-slate-300 to-gray-300' : 
                                                         'bg-gradient-to-r from-amber-600 to-orange-400'
-                                                    }`}>
+                                                    }`} aria-label={`Position ${index + 1}`}>
                                                         {getBadge(index)}
                                                     </div>
                                                     <div className="relative w-14 h-14 rounded-full overflow-hidden border-3 border-blue-300 shadow-md">
                                                         <img
                                                             src={player.user?.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(player.user?.firstName || 'player')}`}
-                                                            alt={player.user?.firstName || 'Joueur'}
+                                                            alt={`Avatar de ${player.user?.firstName || 'Joueur'}`}
                                                             className="w-full h-full object-cover"
                                                             onError={(e) => {
                                                                 e.target.onerror = null;
@@ -347,7 +358,7 @@ export default function LeaderboardPage() {
                                                     <div>
                                                         <h3 className="font-bold text-lg text-gray-800">{player.user?.firstName || 'Joueur'}</h3>
                                                         <div className="flex space-x-1 text-xs text-gray-500">
-                                                            <span>🎮 {player.gamesPlayed || 0} {player.gamesPlayed === 1 ? t('leaderboard.gamesSingular') : t('leaderboard.games')}</span>
+                                                            <span><span role="img" aria-hidden="true">🎮</span> {player.gamesPlayed || 0} {player.gamesPlayed === 1 ? t('leaderboard.gamesSingular') : t('leaderboard.games')}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -362,7 +373,7 @@ export default function LeaderboardPage() {
                                         <div className="w-32 h-32 mx-auto mb-6">
                                             <img 
                                                 src="/images/owl.webp" 
-                                                alt="Jame le hibou"
+                                                alt="James le hibou"
                                                 className="w-full h-full object-contain opacity-70"
                                                 onError={(e) => {
                                                     e.target.onerror = null;
@@ -377,17 +388,17 @@ export default function LeaderboardPage() {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </section>
 
-                        {/* Espace réservé pour le classement Jame */}
-                        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-indigo-300 transform rotate-0.5 opacity-80">
+                        {/* Espace réservé pour le classement James */}
+                        <section className="bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-indigo-300 transform rotate-0.5 opacity-80" aria-labelledby="james-ranking-title">
                             <div className="bg-gradient-to-r from-indigo-500 to-blue-500 py-5 px-6">
-                                <h2 className="text-3xl font-bold text-white text-center transform -rotate-1">
-                                    🏆 {t('leaderboard.jamesRanking')} 🏆
+                                <h2 id="james-ranking-title" className="text-3xl font-bold text-white text-center transform -rotate-1">
+                                    <span role="img" aria-hidden="true">🏆</span> {t('leaderboard.jamesRanking')} <span role="img" aria-hidden="true">🏆</span>
                                 </h2>
                             </div>
                             <div className="p-8 text-center">
-                                <div className="animate-pulse">
+                                <div className="animate-pulse" aria-label="Chargement...">
                                     <div className="h-8 bg-indigo-100 rounded-full mb-4 mx-auto w-3/4"></div>
                                     <div className="h-8 bg-blue-100 rounded-full mb-4 mx-auto w-2/3"></div>
                                     <div className="h-8 bg-indigo-100 rounded-full mb-4 mx-auto w-3/4"></div>
@@ -396,14 +407,14 @@ export default function LeaderboardPage() {
                                     {t('leaderboard.jamesRankingMessage')}
                                 </p>
                             </div>
-                        </div>
+                        </section>
                     </div>
                 </div>
                 
                 {/* Message d'encouragement */}
                 <div className="mt-8 text-center">
                     <p className="text-xl text-orange-600 font-bold animate-bounce-slow">
-                        👑 {t('leaderboard.encouragement')} 👑
+                        <span role="img" aria-hidden="true">👑</span> {t('leaderboard.encouragement')} <span role="img" aria-hidden="true">👑</span>
                     </p>
                 </div>
             </div>

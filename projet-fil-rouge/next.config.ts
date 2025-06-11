@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
+import withPWA from 'next-pwa';
+
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true, 
-  
+  reactStrictMode: true,
+
   images: {
     remotePatterns: [
       {
@@ -18,7 +20,7 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    
+
   },
 
   // Configuration i18n
@@ -27,7 +29,7 @@ const nextConfig: NextConfig = {
     defaultLocale: 'fr',
     localeDetection: false,
   },
-  
+
   // Pour permettre l'importation de fichiers JSON
   webpack(config) {
     config.module.rules.push({
@@ -38,4 +40,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withPWA({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+})(nextConfig);
