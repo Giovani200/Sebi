@@ -18,7 +18,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="apple-touch-icon" href="/images/apple-icon.png" />
+      </head>
       <body className="min-h-screen bg-[#fdf2dd]">
         <LanguageProvider>
           <Nav />
