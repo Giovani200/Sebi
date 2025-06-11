@@ -13,7 +13,7 @@ export default function RewardNotification({ reward, onClose }) {
         bgGradient: reward?.bgGradient || "from-yellow-300 to-orange-400",
         borderColor: reward?.borderColor || "border-yellow-500",
         pattern: reward?.pattern || "✨",
-        description: reward?.description || "Tu as fait tes premiers pas dans l'aventure !"
+        description: reward?.description || "Tu  as fait tes premiers pas dans l'aventure !"
     };
 
     useEffect(() => {
